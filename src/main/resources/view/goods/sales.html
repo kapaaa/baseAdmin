@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link th:href="@{/common/layui/css/layui.css}" rel="stylesheet" type="text/css"/>
+    <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
+</head>
+<!--<script th:replace="common/head::static"></script>  &lt;!&ndash; jquery &ndash;&gt;-->
+<script th:src="@{/common/layui/layui.js}"></script>  <!-- 注意：如果你直接复制所有代码到本地，上述 JS 路径需要改成你本地的 -->
+<style>
+    .price {
+        margin-left: -50px
+    }
+
+    .float-div {
+        width: 200px;
+        height: 250px;
+        float: left;
+        display: inline-block;
+        box-shadow: 10px 10px 5px #8888;
+        margin: 5px;
+    }
+
+    img {
+        width: 200px;
+        height: 200px;
+        background-repeat: no-repeat;
+    }
+
+    .button-sale {
+        width: 65px;
+        margin-left: 15%;
+    }
+
+    .sales {
+        margin-left: 164px;
+        margin-top: -191px;
+        position: absolute;
+    }
+
+</style>
+<body>
+
+<div>
+    <div class="layui-form-item" style="width: 300px;display: inline-block;">
+        <label class="layui-form-label">搜索</label>
+        <div class="layui-input-block">
+            <input type="text" id="key" required lay-verify="required" placeholder="请输入名称或编号" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <button type="button" class="layui-btn" onclick="search()">搜索</button>
+    <i id="saleCount"> </i>
+
+</div>
+<div id="tables"></div>
+
+
+<script>
+    layui.use('layer', function () {
+        var layer = layui.layer;
+        getSalesCount();
+        layer.ready(function () {
+            layui.$.ajax({
+                url: "/sales/list?key=" + layui.$("#key").val(),
+                data: {},
+                type: "get",
+                dataType: "json",
+                contentType: 'application/json; charset=UTF-8',
+                success: function (data) {
+                    if (data.flag) {
+                        addGoods(data.data)
+
+                    }
+                },
+                error: function (data) {
+                    layer.alert(JSON.stringify(data), {
+                        title: data
+                    });
+                }
+            });
+        });
+
+    });
+
+    function addGoods(data) {
+        layui.$('#tables').append(getHtml(data));
+    }
+
+    function search() {
+        console.log(layui.$("#key").val())
+        layui.$.ajax({
+            url: "/sales/list",
+            data: {"key": layui.$("#key").val()},
+            type: "get",
+            dataType: "json",
+            contentType: 'application/json; charset=UTF-8',
+            success: function (data) {
+                if (data.flag) {
+                    editGoods(data.data)
+                }
+            },
+            error: function (data) {
+                layer.alert(JSON.stringify(data), {
+                    title: data
+                });
+            }
+        });
+    }
+
+    function editGoods(data) {
+        layui.$('#tables').html(getHtml(data));
+    }
+
+    function getHtml(data) {
+        str = '';
+        if (data.length > 0) {
+            for (let i = 0; i < data.length; i++) {
+                str += '  <div class="float-div" >\n' +
+                    '        <img src=' + data[i].img + '>\n' +
+                    '        <span class="layui-badge price sales" name=\"' + data[i].id + '\"id=\"' + data[i].goodsId + '\">' + data[i].saleNum + '</span>\n' +
+                    '        <button type="button" class="layui-btn button-sale" onclick="saleOne(\'' + data[i].goodsId + '\')">+</button>\n' +
+                    '        <button type="button" class="layui-btn button-sale layui-btn-danger" onclick="returnOne(\'' + data[i].goodsId + '\')">-</button>\n' +
+                    '    </div>';
+            }
+        }
+        return str;
+    }
+
+    function saleOne(goodsId) {
+        addOrReturn(goodsId, 1);
+    }
+
+    function returnOne(goodsId) {
+        if ((Number(layui.$('#' + goodsId).text())) > 0) {
+            addOrReturn(goodsId, -1);
+        }
+    }
+
+
+    function addOrReturn(goodsId, num) {
+        str = '#' + goodsId
+        var dom = layui.$(str);
+        var id = (dom.attr('name') == null || dom.attr('name') == 'null') ? '' : dom.attr('name');
+        var data = {'id': id, 'goodsId': goodsId, 'saleNum': (Number(dom.text()) + num)}
+        layui.$.ajax({
+            url: "/sales/saleOne",
+            data: JSON.stringify(data),
+            type: "post",
+            dataType: "json",
+            contentType: 'application/json; charset=UTF-8',
+            success: function (data) {
+                dom.replaceWith('  <span class="layui-badge price sales" name=\"' + data.data.id + '\"id=\"' + data.data.goodsId + '\">' + data.data.saleNum + '</span>');
+                getSalesCount()
+            },
+            error: function (data) {
+                layer.alert(JSON.stringify(data), {
+                    title: data
+                });
+            }
+        });
+    }
+
+    function getSalesCount() {
+        var time = new Date().toLocaleDateString();
+        layui.$.ajax({
+            url: '/sales/salesCount?' + 'startTime=' + time + '&endTime=' + time,
+            data: {},
+            type: "get",
+            // dataType: "json",
+            contentType: 'application/json; charset=UTF-8',
+            success: function (data) {
+                console.log(data)
+                layui.$('#saleCount').html(
+                    "<i class=\"layui-icon layui-icon-rmb\" style=\"font-size: 20px; color: #e5084d;\">总售价: " + data.data.totalSale + " </i>");
+            },
+            error: function (data) {
+                layer.alert(JSON.stringify(data), {
+                    title: data
+                });
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

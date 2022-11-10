@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link th:href="@{/common/layui/css/layui.css}" rel="stylesheet" type="text/css"/>
+    <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
+</head>
+<body>
+<div class="layui-form-item" style="width: 300px;display: inline-block;">
+    <label class="layui-form-label">商品名称</label>
+    <div class="layui-input-block">
+        <input type="text" id="name" required lay-verify="required" placeholder="请输入商品名称" autocomplete="off"
+               class="layui-input">
+    </div>
+</div>
+<div class="layui-form-item" style="width: 300px;display: inline-block;">
+    <label class="layui-form-label">开始时间</label>
+    <div class="layui-input-block">
+        <input type="text" id="startTime" required lay-verify="required" placeholder="请输入名称或编号" autocomplete="off"
+               class="layui-input">
+    </div>
+</div>
+<div class="layui-form-item" style="width: 300px;display: inline-block;">
+    <label class="layui-form-label">结束时间</label>
+    <div class="layui-input-block">
+        <input type="text" id="endTime" required lay-verify="required" placeholder="请输入名称或编号" autocomplete="off"
+               class="layui-input">
+    </div>
+</div>
+
+
+<button type="button" class="layui-btn" onclick="search()">搜索</button>
+<div id="saleInfo">
+
+</div>
+<table class="layui-hide" id="test" lay-filter="test"></table>
+
+
+
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+<!--        <button class="layui-btn layui-btn-sm" lay-event="addGoods">新增商品</button>-->
+<!--        <button class="layui-btn layui-btn-sm" lay-event="getCheckLength">获取选中数目</button>-->
+<!--        <button class="layui-btn layui-btn-sm" lay-event="isAll">验证是否全选</button>-->
+    </div>
+</script>
+
+
+
+
+<script th:src="@{/common/layui/layui.js}"></script>
+<!-- 注意：如果你直接复制所有代码到本地，上述 JS 路径需要改成你本地的 -->
+
+<script>
+    layui.use('laydate', function(){
+        var laydate = layui.laydate;
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#startTime' //指定元素
+        });
+    });
+
+    layui.use('laydate', function(){
+        var laydate = layui.laydate;
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#endTime' //指定元素
+        });
+    });
+
+    layui.use('table', function () {
+        var table = layui.table;
+
+        table.render({
+            elem: '#test'
+            , url: '/sales/salesReport'
+            , toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
+            , defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
+                title: '提示'
+                , layEvent: 'LAYTABLE_TIPS'
+                , icon: 'layui-icon-tips'
+            }]
+            , parseData: function (res) { //res 即为原始返回的数据
+
+                return {
+                    "code": res.flag ? 0 : 1, //解析接口状态
+                    "msg": res.msg, //解析提示文本
+                    "count": res.data.total, //解析数据长度
+                    "data": res.data.list //解析数据列表
+                };
+            }
+            , title: '用户数据表'
+            , cols: [
+                [
+                    {type: 'checkbox', fixed: 'left'}
+                    , {field: 'name', title: '商品名称', width: 120, }
+                    , {field: 'purchasingPrice', title: '进价', width: 80,  sort: true}
+                    , {field: 'totalPurchasing', title: '总进价', width: 120,  sort: true}
+                    , {field: 'salePrice', title: '售价', width: 80 , sort: true}
+                    , {field: 'totalSale', title: '总售价', width: 120 , sort: true}
+                    , {field: 'saleNum', title: '销售数量'}
+                    , {field: 'profit', title: '总利润'}
+                ]
+            ]
+            , page: true
+        });
+        getSalesCount();
+    })
+    function search() {
+        var name = layui.$('#name').val();
+        var startTime = layui.$('#startTime').val();
+        var endTime = layui.$('#endTime').val();
+        layui.use('table', function () {
+            var table = layui.table;
+            table.render({
+                elem: '#test'
+                , url: '/sales/salesReport?name='+name+'&startTime='+startTime+'&endTime='+endTime
+                , toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
+                , defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
+                    title: '提示'
+                    , layEvent: 'LAYTABLE_TIPS'
+                    , icon: 'layui-icon-tips'
+                }]
+                , parseData: function (res) { //res 即为原始返回的数据
+                    return {
+                        "code": res.flag ? 0 : 1, //解析接口状态
+                        "msg": res.msg, //解析提示文本
+                        "count": res.data.total, //解析数据长度
+                        "data": res.data.list //解析数据列表
+                    };
+                }
+                , title: '用户数据表'
+                , cols: [
+                    [
+                        {type: 'checkbox', fixed: 'left'}
+                        , {field: 'name', title: '商品名称', width: 120, }
+                        , {field: 'purchasingPrice', title: '进价', width: 80,  sort: true}
+                        , {field: 'totalPurchasing', title: '总进价', width: 120,  sort: true}
+                        , {field: 'salePrice', title: '售价', width: 80 , sort: true}
+                        , {field: 'totalSale', title: '总售价', width: 120 , sort: true}
+                        , {field: 'saleNum', title: '销售数量'}
+                        , {field: 'profit', title: '总利润'}
+                    ]
+                ]
+                , page: true
+            });
+
+        })
+        getSalesCount();
+    }
+
+    function getSalesCount() {
+        var name = layui.$('#name').val();
+        var startTime = layui.$('#startTime').val();
+        var endTime = layui.$('#endTime').val();
+        layui.$.ajax({
+            url: '/sales/salesCount?name='+name+'&startTime='+startTime+'&endTime='+endTime,
+            data: {},
+            type: "get",
+            // dataType: "json",
+            contentType: 'application/json; charset=UTF-8',
+            success: function (data) {
+                console.log(data)
+                layui.$('#saleInfo').html(
+                    "<i class=\"layui-icon layui-icon-rmb\" style=\"font-size: 20px; color: #e5084d;\">总售价: "+data.data.totalSale+" </i>\n" +
+                    "<i class=\"layui-icon layui-icon-rmb\" style=\"font-size: 20px; color: #1E9FFF;\">总进价: "+data.data.totalPurchasing+" </i>\n" +
+                    "<i class=\"layui-icon layui-icon-rmb\" style=\"font-size: 20px; color: #ff1e38;\">总利润: "+data.data.totalProfit+" </i>");
+            },
+            error: function (data) {
+                layer.alert(JSON.stringify(data), {
+                    title: data
+                });
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
