@@ -23,21 +23,35 @@ INSERT INTO `goods` (`id`, `name`, `img`, `type`, `purchasing_price`, `sale_pric
 	('cdc0f57c5d8547b1941b103e170a6e5c', '百事可乐', 'https://th.bing.com/th/id/OIP.Zl1rZ9exM-UTmVWCBpS3gQHaHa?w=181&h=181&c=7&r=0&o=5&pid=1.7', 1, 1.100000, 1.200000, 'bskl', '2022-11-04 14:23:27', '2022-11-10 14:51:44');
 
 -- 正在导出表  supermarket.goods_sales 的数据：~9 rows (大约)
-INSERT INTO `goods_sales` (`id`, `goods_id`, `sale_num`, `create_time`) VALUES
-	('02e37458b32840f0b910841d1438bad1', '281f5908608c44059096b99446b0d4a7', 0, '2022-11-10'),
-	('2a2d1a404f2242938056218c660035cd', '329437867128487ab3bd966645c9da9d', 0, '2022-11-10'),
-	('2ac2473f62b4426686ab11922f1ba77d', '20fed4cf71a3465784984f1c93fd80e0', 0, '2022-11-10'),
-	('2db0a9e2d1c147d6ba1de052ad03af46', '20fed4cf71a3465784984f1c93fd80e0', 29, '2022-11-08'),
-	('5e46a6d9129a47028b5c93e7a63cafcc', '8245b5f363aa40618fb64d7694fefe0d', 2, '2022-11-09'),
-	('5fdf72b2ecd64ed79765cd886e299e55', '329437867128487ab3bd966645c9da9d', 7, '2022-11-08'),
-	('669a2b966e0e40819e12177447ca2a9d', 'cdc0f57c5d8547b1941b103e170a6e5c', 11, '2022-11-09'),
-	('6a0e3b3891294faa98a0ca09fb75e5fb', '329437867128487ab3bd966645c9da9d', 2, '2022-11-09'),
-	('78ec2bd6e5234d10a9614a6a322c9e44', 'cdc0f57c5d8547b1941b103e170a6e5c', 9, '2022-11-08'),
-	('832bc82a05294e9da3b2e1fd35b3ef25', '8245b5f363aa40618fb64d7694fefe0d', 8, '2022-11-08'),
-	('939f03360fae425fa1168477b6ee1283', 'cdc0f57c5d8547b1941b103e170a6e5c', 0, '2022-11-10'),
-	('9f750e50d27e47fba7750704e16c6a60', '281f5908608c44059096b99446b0d4a7', 7, '2022-11-08'),
-	('b610f3da7fd142ae8e535e50da734aac', '8245b5f363aa40618fb64d7694fefe0d', 0, '2022-11-10'),
-	('df9611140cc14e2dbc243bbf5915968e', '20fed4cf71a3465784984f1c93fd80e0', 7, '2022-11-09');
+CREATE TABLE `goods_sales` (
+                               `id` VARCHAR(50) NOT NULL COLLATE 'utf8mb3_general_ci',
+                               `goods_id` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb3_general_ci',
+                               `sale_num` INT(10) NULL DEFAULT NULL,
+                               `create_time` DATE NULL DEFAULT NULL,
+                               `user_name` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb3_general_ci',
+                               `purchasing_price` DECIMAL(20,6) NULL DEFAULT NULL,
+                               `sale_price` DECIMAL(20,6) NULL DEFAULT NULL,
+                               PRIMARY KEY (`id`) USING BTREE
+)
+    COMMENT='商品销售'
+COLLATE='utf8mb3_general_ci'
+ENGINE=InnoDB;
+CREATE TABLE `goods` (
+                         `id` VARCHAR(50) NOT NULL COLLATE 'utf8mb3_general_ci',
+                         `name` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb3_general_ci',
+                         `img` VARCHAR(512) NULL DEFAULT NULL COLLATE 'utf8mb3_general_ci',
+                         `type` INT(10) NULL DEFAULT NULL,
+                         `purchasing_price` DECIMAL(20,6) NULL DEFAULT NULL,
+                         `sale_price` DECIMAL(20,6) NULL DEFAULT NULL,
+                         `code` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb3_general_ci',
+                         `create_time` DATETIME NULL DEFAULT NULL,
+                         `update_time` DATETIME NULL DEFAULT NULL,
+                         PRIMARY KEY (`id`) USING BTREE
+)
+    COMMENT='商品'
+COLLATE='utf8mb3_general_ci'
+ENGINE=InnoDB
+;
 
 -- 正在导出表  supermarket.persistent_logins 的数据：~4 rows (大约)
 INSERT INTO `persistent_logins` (`series`, `username`, `token`, `last_used`) VALUES

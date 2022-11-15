@@ -20,6 +20,7 @@
         </if>
 
     </select>
+
     <select id="SalesCount" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesCountVo">
         SELECT  sum(b.purchasing_price*b.sale_num) AS total_purchasing,sum(b.sale_price*b.sale_num) AS total_sale
         FROM goods a

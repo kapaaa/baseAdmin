@@ -72,7 +72,6 @@
                 dataType: "json",
                 contentType: 'application/json; charset=UTF-8',
                 success: function (data) {
-                    console.log(data)
                     if (data.flag) {
                         addGoods(data.data)
 
@@ -148,7 +147,6 @@
         str = '#' + split[0]
         var dom = layui.$(str);
         var id = (dom.attr('name') == null || dom.attr('name') == 'null') ? '' : dom.attr('name');
-        console.log(id)
         var data = {'id': id, 'goodsId': split[0], 'saleNum': (Number(dom.text()) + num),'purchasingPrice':split[1],'salePrice':split[2]}
         layui.$.ajax({
             url: "/sales/saleOne",
@@ -157,7 +155,6 @@
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
             success: function (data) {
-                console.log(data)
                 dom.replaceWith('  <span class="layui-badge price sales" name=\"' + data.data.id + '\"id=\"' + data.data.goodsId + '\">' + data.data.saleNum + '</span>');
                 getSalesCount()
             },

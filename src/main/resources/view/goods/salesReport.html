@@ -164,7 +164,6 @@
             // dataType: "json",
             contentType: 'application/json; charset=UTF-8',
             success: function (data) {
-                console.log(data)
                 layui.$('#saleInfo').html(
                     "<i class=\"layui-icon layui-icon-rmb\" style=\"font-size: 20px; color: #e5084d;\">总售价: "+data.data.totalSale+" </i>\n" +
                     "<i class=\"layui-icon layui-icon-rmb\" style=\"font-size: 20px; color: #1E9FFF;\">总进价: "+data.data.totalPurchasing+" </i>\n" +
