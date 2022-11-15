@@ -21,12 +21,10 @@ public interface GoodsService extends CommonService<GoodsVo, Goods, String> {
 
     /**
      * 出售或回退
-     * @param id
-     * @param goodsId
-     * @param saleNum
+     * @param goods
      * @return
      */
-    Result<SalesGoodsVo> salesOne( String id,  String goodsId,  Integer saleNum);
+    Result<SalesGoodsVo> salesOne(SalesGoodsVo goods);
 
     /**
      * 销售报表

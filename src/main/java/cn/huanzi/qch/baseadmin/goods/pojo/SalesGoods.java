@@ -18,8 +18,14 @@ public class SalesGoods implements Serializable {
 
     private String goodsId;
 
+    private String userName;
+
     private Integer saleNum;//进货价格
 
     private Date createTime;//销售价格
+
+    private BigDecimal purchasingPrice;//进货价格
+
+    private BigDecimal salePrice;//销售价格
 
 }

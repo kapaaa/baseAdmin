@@ -72,6 +72,7 @@
                 dataType: "json",
                 contentType: 'application/json; charset=UTF-8',
                 success: function (data) {
+                    console.log(data)
                     if (data.flag) {
                         addGoods(data.data)
 
@@ -92,7 +93,6 @@
     }
 
     function search() {
-        console.log(layui.$("#key").val())
         layui.$.ajax({
             url: "/sales/list",
             data: {"key": layui.$("#key").val()},
@@ -100,6 +100,7 @@
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
             success: function (data) {
+
                 if (data.flag) {
                     editGoods(data.data)
                 }
@@ -123,30 +124,32 @@
                 str += '  <div class="float-div" >\n' +
                     '        <img src=' + data[i].img + '>\n' +
                     '        <span class="layui-badge price sales" name=\"' + data[i].id + '\"id=\"' + data[i].goodsId + '\">' + data[i].saleNum + '</span>\n' +
-                    '        <button type="button" class="layui-btn button-sale" onclick="saleOne(\'' + data[i].goodsId + '\')">+</button>\n' +
+                    '        <button type="button" class="layui-btn button-sale" onclick="saleOne(\'' + data[i].goodsId + ","+data[i].purchasingPrice+","+data[i].salePrice+'\')">+</button>\n' +
                     '        <button type="button" class="layui-btn button-sale layui-btn-danger" onclick="returnOne(\'' + data[i].goodsId + '\')">-</button>\n' +
-                    '    </div>';
+                    '</div>';
             }
         }
         return str;
     }
 
-    function saleOne(goodsId) {
-        addOrReturn(goodsId, 1);
+    function saleOne(str) {
+        addOrReturn(str, 1);
     }
 
-    function returnOne(goodsId) {
-        if ((Number(layui.$('#' + goodsId).text())) > 0) {
-            addOrReturn(goodsId, -1);
+    function returnOne(str) {
+        if ((Number(layui.$('#' + str).text())) > 0) {
+            addOrReturn(str, -1);
         }
     }
 
 
-    function addOrReturn(goodsId, num) {
-        str = '#' + goodsId
+    function addOrReturn(strs, num) {
+        var split = strs.split(",");
+        str = '#' + split[0]
         var dom = layui.$(str);
         var id = (dom.attr('name') == null || dom.attr('name') == 'null') ? '' : dom.attr('name');
-        var data = {'id': id, 'goodsId': goodsId, 'saleNum': (Number(dom.text()) + num)}
+        console.log(id)
+        var data = {'id': id, 'goodsId': split[0], 'saleNum': (Number(dom.text()) + num),'purchasingPrice':split[1],'salePrice':split[2]}
         layui.$.ajax({
             url: "/sales/saleOne",
             data: JSON.stringify(data),
@@ -154,6 +157,7 @@
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
             success: function (data) {
+                console.log(data)
                 dom.replaceWith('  <span class="layui-badge price sales" name=\"' + data.data.id + '\"id=\"' + data.data.goodsId + '\">' + data.data.saleNum + '</span>');
                 getSalesCount()
             },
@@ -174,7 +178,6 @@
             // dataType: "json",
             contentType: 'application/json; charset=UTF-8',
             success: function (data) {
-                console.log(data)
                 layui.$('#saleCount').html(
                     "<i class=\"layui-icon layui-icon-rmb\" style=\"font-size: 20px; color: #e5084d;\">总售价: " + data.data.totalSale + " </i>");
             },

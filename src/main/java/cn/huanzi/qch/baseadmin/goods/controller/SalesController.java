@@ -40,7 +40,7 @@ public class SalesController extends CommonController<GoodsVo, Goods, String> {
     @PostMapping("/saleOne")
     @ResponseBody
     public Result saleOne(@RequestBody SalesGoodsVo goods) {
-        return goodsService.salesOne(goods.getId(), goods.getGoodsId(), goods.getSaleNum());
+        return goodsService.salesOne(goods);
     }
 
     @GetMapping("/salesReport")
@@ -51,9 +51,6 @@ public class SalesController extends CommonController<GoodsVo, Goods, String> {
                               @RequestParam(required=false) String name) {
         PageHelper.startPage(page,limit);
 
-        System.out.println(startTime);
-        System.out.println(endTime);
-        System.out.println(name);
         return goodsService.salesReport(startTime, endTime, name);
     }
 

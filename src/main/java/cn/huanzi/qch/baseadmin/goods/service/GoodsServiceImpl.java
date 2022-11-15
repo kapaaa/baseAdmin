@@ -10,6 +10,7 @@ import cn.huanzi.qch.baseadmin.goods.vo.GoodsVo;
 import cn.huanzi.qch.baseadmin.goods.vo.SalesCountVo;
 import cn.huanzi.qch.baseadmin.goods.vo.SalesGoodsVo;
 import cn.huanzi.qch.baseadmin.goods.vo.SalesReportVo;
+import cn.huanzi.qch.baseadmin.util.SecurityUtil;
 import cn.huanzi.qch.baseadmin.util.SqlUtil;
 import cn.huanzi.qch.baseadmin.util.UUIDUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,9 +89,9 @@ public class GoodsServiceImpl extends CommonServiceImpl<GoodsVo, Goods, String> 
 
     @Override
     @Transactional
-    public synchronized Result<SalesGoodsVo> salesOne(String id, String goodsId, Integer saleNum) {
-        id = id.isEmpty() ? UUIDUtil.getUuid() : id;
-        salesGoodsMapper.salesOne(id.isEmpty() ? UUIDUtil.getUuid() : id, goodsId, saleNum, new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+    public synchronized Result<SalesGoodsVo> salesOne(SalesGoodsVo goods) {
+        String id = goods.getId().isEmpty() ? UUIDUtil.getUuid() : goods.getId();
+        salesGoodsMapper.salesOne(id, goods.getGoodsId(), goods.getSaleNum(), new SimpleDateFormat("yyyy-MM-dd").format(new Date()), SecurityUtil.getLoginUser().getUsername(), goods.getPurchasingPrice(), goods.getSalePrice());
         return Result.of(salesGoodsMapper.findSalesGoodsById(id));
     }
 
@@ -114,7 +115,7 @@ public class GoodsServiceImpl extends CommonServiceImpl<GoodsVo, Goods, String> 
             endTime = format;
         }
         SalesCountVo salesCountVo = salesGoodsMapper.SalesCount(startTime, endTime, name);
-        if (salesCountVo.getTotalSale() != null) {
+        if (salesCountVo != null && salesCountVo.getTotalSale() != null && salesCountVo.getTotalPurchasing() != null) {
             salesCountVo.setTotalProfit(salesCountVo.getTotalSale().subtract(salesCountVo.getTotalPurchasing()));
         }
         return Result.of(salesCountVo);

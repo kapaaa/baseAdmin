@@ -5,13 +5,13 @@
     <!-- selectByName -->
     <select id="salesOne" resultType="integer">
 
-        INSERT INTO goods_sales (id, goods_id, sale_num, create_time) VALUES (#{id}, #{goodsId},#{saleNum}, #{createTime} ) ON DUPLICATE KEY UPDATE sale_num=#{saleNum};
+        INSERT INTO goods_sales (id, goods_id, sale_num, create_time,user_name,purchasing_price,sale_price) VALUES (#{id}, #{goodsId},#{saleNum}, #{createTime},#{userName},#{purchasingPrice},#{salePrice} ) ON DUPLICATE KEY UPDATE sale_num=#{saleNum};
 
     </select>
 
     <select id="salesReport" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesReportVo">
-        SELECT   a.name ,a.purchasing_price,a.sale_price, sale_num ,b.create_time, (a.purchasing_price*b.sale_num) AS total_purchasing,
-               (a.sale_price*b.sale_num) AS total_sale,(SELECT total_sale)-(SELECT total_purchasing) as profit
+        SELECT   a.name ,b.purchasing_price,b.sale_price, b.sale_num ,b.create_time, (b.purchasing_price*b.sale_num) AS total_purchasing,
+               (b.sale_price*b.sale_num) AS total_sale,(SELECT total_sale)-(SELECT total_purchasing) as profit
         FROM goods a
         LEFT JOIN goods_sales b ON a.id=b.goods_id
         WHERE b.create_time&gt;=#{startTime} AND b.create_time &lt;= #{endTime}
@@ -21,7 +21,7 @@
 
     </select>
     <select id="SalesCount" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesCountVo">
-        SELECT  sum(purchasing_price*b.sale_num) AS total_purchasing,sum(a.sale_price*b.sale_num) AS total_sale
+        SELECT  sum(b.purchasing_price*b.sale_num) AS total_purchasing,sum(b.sale_price*b.sale_num) AS total_sale
         FROM goods a
         LEFT JOIN goods_sales b ON a.id=b.goods_id
         WHERE b.create_time&gt;=#{startTime} AND b.create_time &lt;= #{endTime}
