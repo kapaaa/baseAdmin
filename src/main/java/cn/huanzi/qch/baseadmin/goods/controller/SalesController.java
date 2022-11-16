@@ -30,6 +30,10 @@ public class SalesController extends CommonController<GoodsVo, Goods, String> {
     public ModelAndView report() {
         return new ModelAndView("goods/salesReport");
     }
+    @GetMapping("/reports")
+    public ModelAndView reports() {
+        return new ModelAndView("goods/salesReports");
+    }
 
     @GetMapping("/list")
     @ResponseBody

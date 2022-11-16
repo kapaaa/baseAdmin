@@ -5,7 +5,7 @@
     <!-- selectByName -->
     <select id="salesOne" resultType="integer">
 
-        INSERT INTO goods_sales (id, goods_id, sale_num, create_time,user_name,purchasing_price,sale_price) VALUES (#{id}, #{goodsId},#{saleNum}, #{createTime},#{userName},#{purchasingPrice},#{salePrice} ) ON DUPLICATE KEY UPDATE sale_num=#{saleNum};
+        INSERT INTO goods_sales (id, goods_id, sale_num, create_time,user_name,purchasing_price,sale_price) VALUES (#{id}, #{goodsId},#{saleNum}, #{createTime},#{user_name},#{purchasingPrice},#{salePrice} ) ON DUPLICATE KEY UPDATE sale_num=#{saleNum};
 
     </select>
 
@@ -18,9 +18,8 @@
         <if test="name != null and name != ''" >
             and a.name like concat('%',#{name},'%')
         </if>
-
+        order by b.create_time desc
     </select>
-
     <select id="SalesCount" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesCountVo">
         SELECT  sum(b.purchasing_price*b.sale_num) AS total_purchasing,sum(b.sale_price*b.sale_num) AS total_sale
         FROM goods a

@@ -13,7 +13,7 @@
 <div class="layui-form-item" style="width: 300px;display: inline-block;">
     <label class="layui-form-label">商品名称</label>
     <div class="layui-input-block">
-        <input type="text" id="name" required lay-verify="required" placeholder="请输入商品名称" autocomplete="off"
+        <input type="text" id="goodName" required lay-verify="required" placeholder="请输入商品名称" autocomplete="off"
                class="layui-input">
     </div>
 </div>
@@ -31,32 +31,32 @@
                class="layui-input">
     </div>
 </div>
-
-
 <button type="button" class="layui-btn" onclick="search()">搜索</button>
-<div id="saleInfo">
+<div id="saleInfo" ></div>
 
-</div>
+<!-- 为 ECharts 准备一个定义了宽高的 DOM -->
+<div id="main" style="width: 600px;height:400px;display: inline-block;"></div>
+<div id="main2" style="width: 600px;height:400px;display: inline-block;"></div>
+
 <table class="layui-hide" id="test" lay-filter="test"></table>
-
 
 
 <script type="text/html" id="toolbarDemo">
     <div class="layui-btn-container">
-<!--        <button class="layui-btn layui-btn-sm" lay-event="addGoods">新增商品</button>-->
-<!--        <button class="layui-btn layui-btn-sm" lay-event="getCheckLength">获取选中数目</button>-->
-<!--        <button class="layui-btn layui-btn-sm" lay-event="isAll">验证是否全选</button>-->
+        <!--        <button class="layui-btn layui-btn-sm" lay-event="addGoods">新增商品</button>-->
+        <!--        <button class="layui-btn layui-btn-sm" lay-event="getCheckLength">获取选中数目</button>-->
+        <!--        <button class="layui-btn layui-btn-sm" lay-event="isAll">验证是否全选</button>-->
     </div>
 </script>
 
 
-
-
 <script th:src="@{/common/layui/layui.js}"></script>
+<script th:src="@{/common/echarts/echarts.js}"></script>
 <!-- 注意：如果你直接复制所有代码到本地，上述 JS 路径需要改成你本地的 -->
 
 <script>
-    layui.use('laydate', function(){
+
+    layui.use('laydate', function () {
         var laydate = layui.laydate;
         //执行一个laydate实例
         laydate.render({
@@ -64,61 +64,54 @@
         });
     });
 
-    layui.use('laydate', function(){
+    layui.use('laydate', function () {
         var laydate = layui.laydate;
         //执行一个laydate实例
         laydate.render({
             elem: '#endTime' //指定元素
         });
     });
+    initTable("", "", "");
 
-    layui.use('table', function () {
-        var table = layui.table;
 
-        table.render({
-            elem: '#test'
-            , url: '/sales/salesReport'
-            , toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
-            , defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
-                title: '提示'
-                , layEvent: 'LAYTABLE_TIPS'
-                , icon: 'layui-icon-tips'
-            }]
-            , parseData: function (res) { //res 即为原始返回的数据
 
-                return {
-                    "code": res.flag ? 0 : 1, //解析接口状态
-                    "msg": res.msg, //解析提示文本
-                    "count": res.data.total, //解析数据长度
-                    "data": res.data.list //解析数据列表
-                };
-            }
-            , title: '用户数据表'
-            , cols: [
-                [
-                    {type: 'checkbox', fixed: 'left'}
-                    , {field: 'name', title: '商品名称', width: 120, }
-                    , {field: 'purchasingPrice', title: '进价', width: 80,  sort: true}
-                    , {field: 'totalPurchasing', title: '总进价', width: 120,  sort: true}
-                    , {field: 'salePrice', title: '售价', width: 80 , sort: true}
-                    , {field: 'totalSale', title: '总售价', width: 120 , sort: true}
-                    , {field: 'saleNum', title: '销售数量'}
-                    , {field: 'profit', title: '总利润'}
-                ]
-            ]
-            , page: true
-        });
-        getSalesCount();
-    })
     function search() {
-        var name = layui.$('#name').val();
+        var name = layui.$('#goodName').val();
         var startTime = layui.$('#startTime').val();
         var endTime = layui.$('#endTime').val();
+        initTable(name, startTime, endTime);
+    }
+
+    function getSalesCount() {
+        var name = layui.$('#goodName').val();
+        var startTime = layui.$('#startTime').val();
+        var endTime = layui.$('#endTime').val();
+        layui.$.ajax({
+            url: '/sales/salesCount?name=' + name + '&startTime=' + startTime + '&endTime=' + endTime,
+            data: {},
+            type: "get",
+            // dataType: "json",
+            contentType: 'application/json; charset=UTF-8',
+            success: function (data) {
+                layui.$('#saleInfo').html(
+                    "<i class=\"layui-icon layui-icon-rmb\" style=\"font-size: 20px; color: #e5084d;\">总售价: " + data.data.totalSale + " </i>\n" +
+                    "<i class=\"layui-icon layui-icon-rmb\" style=\"font-size: 20px; color: #1E9FFF;\">总进价: " + data.data.totalPurchasing + " </i>\n" +
+                    "<i class=\"layui-icon layui-icon-rmb\" style=\"font-size: 20px; color: #ff1e38;\">总利润: " + data.data.totalProfit + " </i>");
+            },
+            error: function (data) {
+                layer.alert(JSON.stringify(data), {
+                    title: data
+                });
+            }
+        });
+    }
+
+    function initTable(name, startTime, endTime) {
         layui.use('table', function () {
             var table = layui.table;
             table.render({
                 elem: '#test'
-                , url: '/sales/salesReport?name='+name+'&startTime='+startTime+'&endTime='+endTime
+                , url: '/sales/salesReport?name=' + name + '&startTime=' + startTime + '&endTime=' + endTime
                 , toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
                 , defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
                     title: '提示'
@@ -126,6 +119,14 @@
                     , icon: 'layui-icon-tips'
                 }]
                 , parseData: function (res) { //res 即为原始返回的数据
+                    var data =res.data.list
+                    let nameData =new Array(data.length)
+                    let saleData =new Array(data.length)
+                    for (let i = 0; i < res.data.list.length; i++) {
+                        nameData[i]=data[i].name
+                        saleData[i]=data[i].saleNum
+                    }
+                    initEcharts(nameData,saleData)
                     return {
                         "code": res.flag ? 0 : 1, //解析接口状态
                         "msg": res.msg, //解析提示文本
@@ -137,13 +138,14 @@
                 , cols: [
                     [
                         {type: 'checkbox', fixed: 'left'}
-                        , {field: 'name', title: '商品名称', width: 120, }
-                        , {field: 'purchasingPrice', title: '进价', width: 80,  sort: true}
-                        , {field: 'totalPurchasing', title: '总进价', width: 120,  sort: true}
-                        , {field: 'salePrice', title: '售价', width: 80 , sort: true}
-                        , {field: 'totalSale', title: '总售价', width: 120 , sort: true}
+                        , {field: 'name', title: '商品名称', width: 120,}
+                        , {field: 'purchasingPrice', title: '进价', width: 80, sort: true}
+                        , {field: 'totalPurchasing', title: '总进价', width: 120, sort: true}
+                        , {field: 'salePrice', title: '售价', width: 80, sort: true}
+                        , {field: 'totalSale', title: '总售价', width: 120, sort: true}
                         , {field: 'saleNum', title: '销售数量'}
                         , {field: 'profit', title: '总利润'}
+                        , {field: 'createTime', title: '销售日期'}
                     ]
                 ]
                 , page: true
@@ -153,29 +155,74 @@
         getSalesCount();
     }
 
-    function getSalesCount() {
-        var name = layui.$('#name').val();
-        var startTime = layui.$('#startTime').val();
-        var endTime = layui.$('#endTime').val();
-        layui.$.ajax({
-            url: '/sales/salesCount?name='+name+'&startTime='+startTime+'&endTime='+endTime,
-            data: {},
-            type: "get",
-            // dataType: "json",
-            contentType: 'application/json; charset=UTF-8',
-            success: function (data) {
-                layui.$('#saleInfo').html(
-                    "<i class=\"layui-icon layui-icon-rmb\" style=\"font-size: 20px; color: #e5084d;\">总售价: "+data.data.totalSale+" </i>\n" +
-                    "<i class=\"layui-icon layui-icon-rmb\" style=\"font-size: 20px; color: #1E9FFF;\">总进价: "+data.data.totalPurchasing+" </i>\n" +
-                    "<i class=\"layui-icon layui-icon-rmb\" style=\"font-size: 20px; color: #ff1e38;\">总利润: "+data.data.totalProfit+" </i>");
+    function initEcharts(nameData,saleData){
+        // 基于准备好的dom，初始化echarts实例
+        var myChart1 = echarts.init(document.getElementById('main'));
+        var myChart2 = echarts.init(document.getElementById('main2'));
+        // 指定图表的配置项和数据
+        var option = {
+            title: {
+                text: '销量'
             },
-            error: function (data) {
-                layer.alert(JSON.stringify(data), {
-                    title: data
-                });
-            }
-        });
+            tooltip: {},
+            legend: {
+                data: ['销量']
+            },
+            xAxis: {
+                data: nameData
+            },
+            yAxis: {},
+            series: [
+                {
+                    name: '销量',
+                    type: 'bar',
+                    data: saleData
+                }
+            ]
+        };
+
+        var optionchartZhe = {
+            title: {
+                text: '商品订单'
+            },
+            tooltip: {},
+            legend: { //顶部显示 与series中的数据类型的name一致
+                data: ['销量', '产量', '营业额', '单价']
+            },
+            xAxis: {
+                // type: 'category',
+                // boundaryGap: false, //从起点开始
+                data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [{
+                name: '销量',
+                type: 'line', //线性
+                data: [145, 230, 701, 734, 1090, 1130, 1120],
+            }, {
+                name: '产量',
+                type: 'line', //线性
+                data: [720, 832, 801, 834, 1190, 1230, 1220],
+            }, {
+                smooth: true, //曲线 默认折线
+                name: '营业额',
+                type: 'line', //线性
+                data: [820, 932, 901, 934, 1290, 1330, 1320],
+            }, {
+                smooth: true, //曲线
+                name: '单价',
+                type: 'line', //线性
+                data: [220, 332, 401, 534, 690, 730, 820],
+            }]
+        };
+        // 使用刚指定的配置项和数据显示图表。
+        myChart1.setOption(option);
+        myChart2.setOption(optionchartZhe);
     }
+
+
 </script>
 
 </body>
