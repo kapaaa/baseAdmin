@@ -6,13 +6,9 @@ import cn.huanzi.qch.baseadmin.common.pojo.Result;
 import cn.huanzi.qch.baseadmin.goods.pojo.Goods;
 import cn.huanzi.qch.baseadmin.goods.service.GoodsService;
 import cn.huanzi.qch.baseadmin.goods.vo.GoodsVo;
-import cn.huanzi.qch.baseadmin.sys.sysuser.vo.SysUserVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-
-import java.math.BigDecimal;
-import java.util.List;
 
 @RestController
 @RequestMapping("/goods")

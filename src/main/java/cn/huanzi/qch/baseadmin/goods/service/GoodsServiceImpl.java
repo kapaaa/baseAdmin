@@ -1,15 +1,13 @@
 package cn.huanzi.qch.baseadmin.goods.service;
 
+import cn.huanzi.qch.baseadmin.common.emum.GoodsTypeEnum;
 import cn.huanzi.qch.baseadmin.common.pojo.PageInfo;
 import cn.huanzi.qch.baseadmin.common.pojo.Result;
 import cn.huanzi.qch.baseadmin.common.service.CommonServiceImpl;
 import cn.huanzi.qch.baseadmin.goods.pojo.Goods;
 import cn.huanzi.qch.baseadmin.goods.repository.GoodsMapper;
 import cn.huanzi.qch.baseadmin.goods.repository.SalesGoodsMapper;
-import cn.huanzi.qch.baseadmin.goods.vo.GoodsVo;
-import cn.huanzi.qch.baseadmin.goods.vo.SalesCountVo;
-import cn.huanzi.qch.baseadmin.goods.vo.SalesGoodsVo;
-import cn.huanzi.qch.baseadmin.goods.vo.SalesReportVo;
+import cn.huanzi.qch.baseadmin.goods.vo.*;
 import cn.huanzi.qch.baseadmin.util.SecurityUtil;
 import cn.huanzi.qch.baseadmin.util.SqlUtil;
 import cn.huanzi.qch.baseadmin.util.UUIDUtil;
@@ -17,12 +15,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -114,11 +114,44 @@ public class GoodsServiceImpl extends CommonServiceImpl<GoodsVo, Goods, String> 
             startTime = format;
             endTime = format;
         }
-        SalesCountVo salesCountVo = salesGoodsMapper.SalesCount(startTime, endTime, name);
+        SalesCountVo salesCountVo = salesGoodsMapper.salesCount(startTime, endTime, name);
         if (salesCountVo != null && salesCountVo.getTotalSale() != null && salesCountVo.getTotalPurchasing() != null) {
             salesCountVo.setTotalProfit(salesCountVo.getTotalSale().subtract(salesCountVo.getTotalPurchasing()));
         }
         return Result.of(salesCountVo);
+    }
+
+    @Override
+    public Result salesGroupByDate(String startTime, String endTime) {
+        startTime = checkStartTime(startTime);
+        endTime = checkEndTime(endTime);
+        List<SalesCountVo> salesCountVos = salesGoodsMapper.salesGroupByDate(startTime, endTime);
+        if (!CollectionUtils.isEmpty(salesCountVos)) {
+            for (SalesCountVo e : salesCountVos) {
+                if (e != null && e.getTotalSale() != null && e.getTotalPurchasing() != null) {
+                    e.setTotalProfit(e.getTotalSale().subtract(e.getTotalPurchasing()));
+                }
+            }
+        }
+        return Result.of(salesCountVos);
+    }
+
+    @Override
+    public Result<List<SalesReportVo>> salesGroupByName(String startTime, String endTime) {
+        startTime = checkStartTime(startTime);
+        endTime = checkEndTime(endTime);
+        return Result.of(salesGoodsMapper.salesGroupByName(startTime, endTime));
+    }
+
+    @Override
+    public Result salesGroupByType(String startTime, String endTime) {
+        startTime = checkStartTime(startTime);
+        endTime = checkEndTime(endTime);
+        List<SalesReportByTypeVo> salesReportByTypeVos = salesGoodsMapper.salesGroupByType(startTime, endTime);
+        for (SalesReportByTypeVo e:salesReportByTypeVos){
+            e.setName(GoodsTypeEnum.getValue(e.getType()));
+        }
+        return Result.of(salesReportByTypeVos);
     }
 
     @Override
@@ -134,4 +167,24 @@ public class GoodsServiceImpl extends CommonServiceImpl<GoodsVo, Goods, String> 
         goods.setUpdateTime(new Date());
         GoodsMapper.updateById(goods);
     }
+
+    public String checkStartTime(String startTime) {
+        if (startTime.isEmpty()) {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+            Calendar cale = Calendar.getInstance();
+            cale.add(Calendar.MONTH, 0);
+            cale.set(Calendar.DAY_OF_MONTH, 1);
+            return format.format(cale.getTime());
+        }
+        return startTime;
+    }
+
+    public String checkEndTime(String endTime) {
+        if (endTime.isEmpty()) {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+            return format.format(new Date());
+        }
+        return endTime;
+    }
+
 }

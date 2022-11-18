@@ -32,11 +32,12 @@
     </div>
 </div>
 <button type="button" class="layui-btn" onclick="search()">搜索</button>
-<div id="saleInfo" ></div>
+<div id="saleInfo"></div>
 
 <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
-<div id="main" style="width: 600px;height:400px;display: inline-block;"></div>
-<div id="main2" style="width: 600px;height:400px;display: inline-block;"></div>
+<div id="main" style="width: 500px;height:400px;display: inline-block;"></div>
+<div id="main2" style="width: 700px;height:400px;display: inline-block;"></div>
+<div id="main3" style="width: 400px;height:400px;display: inline-block;"></div>
 
 <table class="layui-hide" id="test" lay-filter="test"></table>
 
@@ -72,20 +73,222 @@
         });
     });
     initTable("", "", "");
-
-
+    getSalesCount("", "", "");
 
     function search() {
         var name = layui.$('#goodName').val();
         var startTime = layui.$('#startTime').val();
         var endTime = layui.$('#endTime').val();
         initTable(name, startTime, endTime);
+        initEcharts();
     }
 
-    function getSalesCount() {
-        var name = layui.$('#goodName').val();
-        var startTime = layui.$('#startTime').val();
-        var endTime = layui.$('#endTime').val();
+
+    function initTable(name, startTime, endTime) {
+        layui.use('table', function () {
+            var table = layui.table;
+            table.render({
+                elem: '#test'
+                , url: '/report/salesReport?name=' + name + '&startTime=' + startTime + '&endTime=' + endTime
+                , toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
+                , defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
+                    title: '提示'
+                    , layEvent: 'LAYTABLE_TIPS'
+                    , icon: 'layui-icon-tips'
+                }]
+                , parseData: function (res) { //res 即为原始返回的数据
+                    getSalesCount(name, startTime, endTime);
+                    initEcharts()
+                    return {
+                        "code": res.flag ? 0 : 1, //解析接口状态
+                        "msg": res.msg, //解析提示文本
+                        "count": res.data.total, //解析数据长度
+                        "data": res.data.list //解析数据列表
+                    };
+                }
+                , title: '用户数据表'
+                , cols: [
+                    [
+                        {type: 'checkbox', fixed: 'left'}
+                        , {field: 'name', title: '商品名称', width: 120, sort: true}
+                        , {field: 'purchasingPrice', title: '进价', width: 80, sort: true}
+                        , {field: 'totalPurchasing', title: '总进价', width: 120, sort: true}
+                        , {field: 'salePrice', title: '售价', width: 80, sort: true}
+                        , {field: 'totalSale', title: '总售价', width: 120, sort: true}
+                        , {field: 'saleNum', title: '销售数量', sort: true}
+                        , {field: 'profit', title: '总利润', sort: true}
+                        , {field: 'createTime', title: '销售日期', sort: true}
+                    ]
+                ]
+                , page: true
+            });
+
+        })
+    }
+
+    function initEcharts() {
+        const startTime = layui.$('#startTime').val();
+        const endTime = layui.$('#endTime').val();
+        echarts1(startTime, endTime)
+        echarts2(startTime, endTime)
+        echarts3(startTime, endTime)
+    }
+
+    function echarts1(startTime, endTime) {
+        layui.$.ajax({
+            url: "/report/salesGroupByName?startTime=" + startTime + "&endTime=" + endTime,
+            data: {},
+            type: "get",
+            dataType: "json",
+            success: function (data) {
+                var d = data.data
+                let nameList = new Array(d.length)
+                let saleList = new Array(d.length)
+                for (let i = 0; i < d.length; i++) {
+                    nameList[i] = d[i].name
+                    saleList[i] = d[i].saleNum
+                }
+                // 基于准备好的dom，初始化echarts实例
+                var myChart1 = echarts.init(document.getElementById('main'));
+                // 指定图表的配置项和数据
+                var option = {
+                    title: {
+                        text: '销量'
+                    },
+                    tooltip: {},
+                    legend: {
+                        data: ['销量']
+                    },
+                    xAxis: {
+                        data: nameList
+                    },
+                    yAxis: {},
+                    series: [
+                        {
+                            name: '销量',
+                            type: 'bar',
+                            data: saleList
+                        }
+                    ]
+                };
+                // 使用刚指定的配置项和数据显示图表。
+                myChart1.setOption(option);
+            },
+            error: function (data) {
+                layer.alert(JSON.stringify(data), {
+                    title: data
+                });
+            }
+        });
+
+
+    }
+
+    function echarts2(startTime, endTime) {
+        layui.$.ajax({
+            url: '/report/salesGroupByDate?startTime=' + startTime + '&endTime=' + endTime,
+            data: {},
+            type: "get",
+            // dataType: "json",
+            contentType: 'application/json; charset=UTF-8',
+            success: function (data) {
+                var d = data.data
+                let saleList = new Array(data.length)
+                let dateList = new Array(data.length)
+                let purchasingList = new Array(data.length)
+                let profitList = new Array(data.length)
+                for (let i = 0; i < d.length; i++) {
+                    var strings = d[i].createTime.toString().split(" ")[0].split("-");
+                    dateList[i] = strings[1] + "-" + strings[2]
+                    saleList[i] = d[i].totalSale
+                    profitList[i] = d[i].totalProfit
+                    purchasingList[i] = d[i].totalPurchasing
+                }
+                var myChart2 = echarts.init(document.getElementById('main2'));
+                var optionchartZhe = {
+                    title: {
+                        text: '商品订单'
+                    },
+                    tooltip: {},
+                    legend: { //顶部显示 与series中的数据类型的name一致
+                        data: ['总成本', '总售价', '总利润']
+                    },
+                    xAxis: {
+                        // type: 'category',
+                        // boundaryGap: false, //从起点开始
+                        data: dateList
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [{
+                        name: '总成本',
+                        type: 'line', //线性
+                        data: purchasingList,
+                    }, {
+                        name: '总售价',
+                        type: 'line', //线性
+                        data: saleList,
+                    }, {
+                        smooth: true, //曲线 默认折线
+                        name: '总利润',
+                        type: 'line', //线性
+                        data: profitList,
+                    }]
+                };
+                myChart2.setOption(optionchartZhe);
+            },
+            error: function (data) {
+                layer.alert(JSON.stringify(data), {
+                    title: data
+                });
+            }
+        });
+    }
+
+    function echarts3(startTime, endTime) {
+        layui.$.ajax({
+            url: '/report/salesGroupByType?startTime=' + startTime + '&endTime=' + endTime,
+            data: {},
+            type: "get",
+            // dataType: "json",
+            contentType: 'application/json; charset=UTF-8',
+            success: function (data) {
+                console.log(data)
+                var myChart3 = echarts.init(document.getElementById('main3'));
+                var optionchartBing = {
+                    title: {
+                        text: '商品订单',
+                        subtext: '', //副标题
+                        x: 'center' //标题居中
+                    },
+                    tooltip: {
+                        // trigger: 'item' //悬浮显示对比
+                    },
+                    legend: {
+                        orient: 'vertical', //类型垂直,默认水平
+                        left: 'left', //类型区分在左 默认居中
+                        data: ['单价', '总价', '销量', '产量']
+                    },
+                    series: [{
+                        type: 'pie', //饼状
+                        radius: '60%', //圆的大小
+                        center: ['50%', '50%'], //居中
+                        data: data.data
+                    }]
+                };
+                myChart3.setOption(optionchartBing);
+            },
+            error: function (data) {
+                layer.alert(JSON.stringify(data), {
+                    title: data
+                });
+            }
+        });
+
+    }
+
+    function getSalesCount(name, startTime, endTime) {
         layui.$.ajax({
             url: '/sales/salesCount?name=' + name + '&startTime=' + startTime + '&endTime=' + endTime,
             data: {},
@@ -105,124 +308,6 @@
             }
         });
     }
-
-    function initTable(name, startTime, endTime) {
-        layui.use('table', function () {
-            var table = layui.table;
-            table.render({
-                elem: '#test'
-                , url: '/sales/salesReport?name=' + name + '&startTime=' + startTime + '&endTime=' + endTime
-                , toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
-                , defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
-                    title: '提示'
-                    , layEvent: 'LAYTABLE_TIPS'
-                    , icon: 'layui-icon-tips'
-                }]
-                , parseData: function (res) { //res 即为原始返回的数据
-                    var data =res.data.list
-                    let nameData =new Array(data.length)
-                    let saleData =new Array(data.length)
-                    for (let i = 0; i < res.data.list.length; i++) {
-                        nameData[i]=data[i].name
-                        saleData[i]=data[i].saleNum
-                    }
-                    initEcharts(nameData,saleData)
-                    return {
-                        "code": res.flag ? 0 : 1, //解析接口状态
-                        "msg": res.msg, //解析提示文本
-                        "count": res.data.total, //解析数据长度
-                        "data": res.data.list //解析数据列表
-                    };
-                }
-                , title: '用户数据表'
-                , cols: [
-                    [
-                        {type: 'checkbox', fixed: 'left'}
-                        , {field: 'name', title: '商品名称', width: 120,sort: true}
-                        , {field: 'purchasingPrice', title: '进价', width: 80, sort: true}
-                        , {field: 'totalPurchasing', title: '总进价', width: 120, sort: true}
-                        , {field: 'salePrice', title: '售价', width: 80, sort: true}
-                        , {field: 'totalSale', title: '总售价', width: 120, sort: true}
-                        , {field: 'saleNum', title: '销售数量',sort: true}
-                        , {field: 'profit', title: '总利润',sort: true}
-                        , {field: 'createTime', title: '销售日期',sort: true}
-                    ]
-                ]
-                , page: true
-            });
-
-        })
-        getSalesCount();
-    }
-
-    function initEcharts(nameData,saleData){
-        // 基于准备好的dom，初始化echarts实例
-        var myChart1 = echarts.init(document.getElementById('main'));
-        var myChart2 = echarts.init(document.getElementById('main2'));
-        // 指定图表的配置项和数据
-        var option = {
-            title: {
-                text: '销量'
-            },
-            tooltip: {},
-            legend: {
-                data: ['销量']
-            },
-            xAxis: {
-                data: nameData
-            },
-            yAxis: {},
-            series: [
-                {
-                    name: '销量',
-                    type: 'bar',
-                    data: saleData
-                }
-            ]
-        };
-
-        var optionchartZhe = {
-            title: {
-                text: '商品订单'
-            },
-            tooltip: {},
-            legend: { //顶部显示 与series中的数据类型的name一致
-                data: ['销量', '产量', '营业额', '单价']
-            },
-            xAxis: {
-                // type: 'category',
-                // boundaryGap: false, //从起点开始
-                data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
-            },
-            yAxis: {
-                type: 'value'
-            },
-            series: [{
-                name: '销量',
-                type: 'line', //线性
-                data: [145, 230, 701, 734, 1090, 1130, 1120],
-            }, {
-                name: '产量',
-                type: 'line', //线性
-                data: [720, 832, 801, 834, 1190, 1230, 1220],
-            }, {
-                smooth: true, //曲线 默认折线
-                name: '营业额',
-                type: 'line', //线性
-                data: [820, 932, 901, 934, 1290, 1330, 1320],
-            }, {
-                smooth: true, //曲线
-                name: '单价',
-                type: 'line', //线性
-                data: [220, 332, 401, 534, 690, 730, 820],
-            }]
-        };
-        // 使用刚指定的配置项和数据显示图表。
-        myChart1.setOption(option);
-        myChart2.setOption(optionchartZhe);
-    }
-
-
 </script>
 
 </body>

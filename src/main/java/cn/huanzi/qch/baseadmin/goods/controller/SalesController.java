@@ -1,18 +1,14 @@
 package cn.huanzi.qch.baseadmin.goods.controller;
 
 import cn.huanzi.qch.baseadmin.common.controller.CommonController;
-import cn.huanzi.qch.baseadmin.common.pojo.PageInfo;
 import cn.huanzi.qch.baseadmin.common.pojo.Result;
 import cn.huanzi.qch.baseadmin.goods.pojo.Goods;
 import cn.huanzi.qch.baseadmin.goods.service.GoodsService;
 import cn.huanzi.qch.baseadmin.goods.vo.GoodsVo;
 import cn.huanzi.qch.baseadmin.goods.vo.SalesGoodsVo;
-import com.github.pagehelper.PageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/sales")
@@ -26,14 +22,6 @@ public class SalesController extends CommonController<GoodsVo, Goods, String> {
         return new ModelAndView("/goods/sales");
     }
 
-    @GetMapping("/report")
-    public ModelAndView report() {
-        return new ModelAndView("goods/salesReport");
-    }
-    @GetMapping("/reports")
-    public ModelAndView reports() {
-        return new ModelAndView("goods/salesReports");
-    }
 
     @GetMapping("/list")
     @ResponseBody
@@ -47,22 +35,11 @@ public class SalesController extends CommonController<GoodsVo, Goods, String> {
         return goodsService.salesOne(goods);
     }
 
-    @GetMapping("/salesReport")
-    public Result salesReport(@RequestParam(required=false) String startTime,
-                              @RequestParam(required=false) String endTime,
-                              @RequestParam Integer page,
-                              @RequestParam Integer limit,
-                              @RequestParam(required=false) String name) {
-        PageHelper.startPage(page,limit);
-
-        return goodsService.salesReport(startTime, endTime, name);
-    }
 
     @GetMapping("/salesCount")
-    public Result getSalesCount(@RequestParam(required=false) String startTime,
-                              @RequestParam(required=false) String endTime,
-                              @RequestParam(required=false) String name) {
-
+    public Result getSalesCount(@RequestParam(required = false) String startTime,
+                                @RequestParam(required = false) String endTime,
+                                @RequestParam(required = false) String name) {
         return goodsService.getSalesCount(startTime, endTime, name);
     }
 }

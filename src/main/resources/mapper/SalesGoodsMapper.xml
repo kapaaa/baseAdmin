@@ -5,7 +5,7 @@
     <!-- selectByName -->
     <select id="salesOne" resultType="integer">
 
-        INSERT INTO goods_sales (id, goods_id, sale_num, create_time,user_name,purchasing_price,sale_price) VALUES (#{id}, #{goodsId},#{saleNum}, #{createTime},#{user_name},#{purchasingPrice},#{salePrice} ) ON DUPLICATE KEY UPDATE sale_num=#{saleNum};
+        INSERT INTO goods_sales (id, goods_id, sale_num, create_time,user_name,purchasing_price,sale_price) VALUES (#{id}, #{goodsId},#{saleNum}, #{createTime},#{userName},#{purchasingPrice},#{salePrice} ) ON DUPLICATE KEY UPDATE sale_num=#{saleNum};
 
     </select>
 
@@ -20,7 +20,7 @@
         </if>
         order by b.create_time desc
     </select>
-    <select id="SalesCount" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesCountVo">
+    <select id="salesCount" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesCountVo">
         SELECT  sum(b.purchasing_price*b.sale_num) AS total_purchasing,sum(b.sale_price*b.sale_num) AS total_sale
         FROM goods a
         LEFT JOIN goods_sales b ON a.id=b.goods_id
@@ -28,6 +28,41 @@
         <if test="name != null and name != ''" >
             and a.name like concat('%',#{name},'%')
         </if>
+    </select>
+
+    <select id="salesGroupByDate" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesCountVo">
+        SELECT  SUM(b.purchasing_price*b.sale_num) AS total_purchasing,sum(b.sale_price*b.sale_num) AS total_sale,b.create_time
+        FROM goods a
+        LEFT JOIN goods_sales b ON a.id=b.goods_id
+        WHERE b.create_time&gt;=#{startTime} AND b.create_time &lt;= #{endTime}
+        group BY b.create_time
+        order by b.create_time asc
+    </select>
+
+    <select id="salesGoodsList" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesGoodsVo">
+        SELECT  b.id,a.id as goods_id,a.name,a.purchasing_price,a.sale_price,IFNULL(b.sale_num,0) AS sale_num,a.img
+        FROM goods a
+        LEFT JOIN goods_sales b ON a.id=b.goods_id AND b.create_time=#{time} ${sql}
+    </select>
+    <select id="findSalesGoodsById" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesGoodsVo">
+        SELECT b.id,a.id AS goods_id,a.name, IFNULL(b.sale_num,0) AS sale_num,a.img
+        FROM goods a
+        LEFT JOIN goods_sales b ON a.id=b.goods_id
+        WHERE b.id=#{id}
+    </select>
+    <select id="salesGroupByName" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesReportVo">
+        SELECT b.name, SUM(a.sale_num) as saleNum FROM goods_sales a
+        LEFT JOIN goods b ON a.goods_id=b. id
+        WHERE a.create_time&gt;=#{startTime} AND a.create_time &lt;= #{endTime}
+        GROUP BY b.name
+        ORDER BY a.create_time DESC
+    </select>
+    <select id="salesGroupByType" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesReportByTypeVo">
+        SELECT  COUNT(b.type) as value,b.type
+        FROM goods_sales a
+            LEFT JOIN goods b ON a.goods_id=b.id
+        WHERE a.create_time&gt;=#{startTime} AND a.create_time &lt;= #{endTime}
+        GROUP BY b.type
     </select>
 
 </mapper>
