@@ -42,9 +42,10 @@ public interface GoodsService extends CommonService<GoodsVo, Goods, String> {
 
     Result getSalesCount(String startTime, String endTime, String name);
 
-    Result salesGroupByDate(String startTime, String endTime);
+    Result salesGroupByDate(String startTime, String endTime,String type);
 
     void update(GoodsVo goodsVo);
 
     Result salesGroupByType(String startTime, String endTime);
+
 }

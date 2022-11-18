@@ -33,9 +33,10 @@ public interface SalesGoodsMapper extends BaseMapper<SalesGoods> {
 
     SalesCountVo salesCount(@Param("startTime") String startTime, @Param("endTime") String endTime, @Param("name") String name);
 
-    List<SalesCountVo> salesGroupByDate(@Param("startTime") String startTime, @Param("endTime") String endTime);
+    List<SalesCountVo> salesGroupByDate(@Param("startTime") String startTime, @Param("endTime") String endTime, @Param("type") String type);
 
     List<SalesReportVo> salesGroupByName(@Param("startTime") String startTime, @Param("endTime") String endTime);
 
     List<SalesReportByTypeVo> salesGroupByType(String startTime, String endTime);
+
 }

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>ECharts</title>
+    <!-- 引入刚刚下载的 ECharts 文件 -->
+
+    <script th:src="@{/common/layui/layui.js}"></script>
+    <script th:src="@{/common/echarts/echarts.js}"></script>
+    <link th:href="@{/common/layui/css/layui.css}" rel="stylesheet" type="text/css"/>
+
+</head>
+<body>
+<div class="layui-form-item" style="width: 300px;display: inline-block;">
+    <label class="layui-form-label">开始时间</label>
+    <div class="layui-input-block">
+        <input type="text" id="startTime" required lay-verify="required" placeholder="请输入名称或编号" autocomplete="off"
+               class="layui-input">
+    </div>
+</div>
+<div class="layui-form-item" style="width: 300px;display: inline-block;">
+    <label class="layui-form-label">结束时间</label>
+    <div class="layui-input-block">
+        <input type="text" id="endTime" required lay-verify="required" placeholder="请输入名称或编号" autocomplete="off"
+               class="layui-input">
+    </div>
+</div>
+<div class="layui-form-item" style="width: 300px;display: inline-block;">
+    <label class="layui-form-label">时间单位</label>
+    <div class="layui-input-block">
+        <select name="type" lay-search id="type">
+            <!--            <option value="">请选择</option>-->
+            <option value="2">月</option>
+            <option value="1">年</option>
+        </select>
+    </div>
+</div>
+<button type="button" class="layui-btn" onclick="search()">搜索</button>
+<!-- 为 ECharts 准备一个定义了宽高的 DOM -->
+<div id="main" style="width: 1600px;height:500px;"></div>
+<script type="text/javascript">
+    let app = {};
+
+    let chartDom = document.getElementById('main');
+    let myChart = echarts.init(chartDom);
+    let option;
+
+    layui.use('laydate', function () {
+        let laydate = layui.laydate;
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#startTime' //指定元素
+        });
+    });
+
+    layui.use('laydate', function () {
+        let laydate = layui.laydate;
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#endTime' //指定元素
+        });
+    });
+
+    layui.use('layer', function () {
+        let date = new Date();
+        let startTime = date.getFullYear() + "-" + 1 + "-" + 1
+        let endTime = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+        loadEcharts(startTime, endTime, 2)
+    });
+
+    function search() {
+        let date = new Date();
+        let startTime = layui.$('#startTime').val();
+        let endTime = layui.$('#endTime').val();
+        let type = layui.$('#type').val();
+        if (startTime == "") {
+            startTime = (date.getFullYear() + "-" + 1 + "-" + 1)
+        }
+        if (endTime == "") {
+            endTime = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
+        }
+        loadEcharts(startTime, endTime, type)
+    }
+
+    function loadEcharts(startTime, endTime, type) {
+        let layer = layui.layer;
+        layer.ready(function () {
+            layui.$.ajax({
+                url: '/report/salesGroupByDate?startTime=' + startTime + '&endTime=' + endTime + '&type=' + type,
+                data: {},
+                type: "get",
+                // dataType: "json",
+                contentType: 'application/json; charset=UTF-8',
+                success: function (data) {
+                    let d = data.data
+                    let saleList = new Array(data.length)
+                    let dateList = new Array(data.length)
+                    let purchasingList = new Array(data.length)
+                    let profitList = new Array(data.length)
+                    for (let i = 0; i < d.length; i++) {
+                        dateList[i] = d[i].createTime.toString()
+                        saleList[i] = d[i].totalSale
+                        profitList[i] = d[i].totalProfit
+                        purchasingList[i] = d[i].totalPurchasing
+                    }
+
+
+                    const posList = [
+                        'left',
+                        'right',
+                        'top',
+                        'bottom',
+                        'inside',
+                        'insideTop',
+                        'insideLeft',
+                        'insideRight',
+                        'insideBottom',
+                        'insideTopLeft',
+                        'insideTopRight',
+                        'insideBottomLeft',
+                        'insideBottomRight'
+                    ];
+                    app.configParameters = {
+                        rotate: {
+                            min: -90,
+                            max: 90
+                        },
+                        align: {
+                            options: {
+                                left: 'left',
+                                center: 'center',
+                                right: 'right'
+                            }
+                        },
+                        verticalAlign: {
+                            options: {
+                                top: 'top',
+                                middle: 'middle',
+                                bottom: 'bottom'
+                            }
+                        },
+                        position: {
+                            options: posList.reduce(function (map, pos) {
+                                map[pos] = pos;
+                                return map;
+                            }, {})
+                        },
+                        distance: {
+                            min: 0,
+                            max: 100
+                        }
+                    };
+                    app.config = {
+                        rotate: 90,
+                        align: 'left',
+                        verticalAlign: 'middle',
+                        position: 'insideBottom',
+                        distance: 15,
+                        onChange: function () {
+                            const labelOption = {
+                                rotate: app.config.rotate,
+                                align: app.config.align,
+                                verticalAlign: app.config.verticalAlign,
+                                position: app.config.position,
+                                distance: app.config.distance
+                            };
+                            myChart.setOption({
+                                series: [
+                                    {
+                                        label: labelOption
+                                    },
+                                    {
+                                        label: labelOption
+                                    },
+                                    {
+                                        label: labelOption
+                                    },
+                                    {
+                                        label: labelOption
+                                    }
+                                ]
+                            });
+                        }
+                    };
+                    const labelOption = {
+                        show: true,
+                        position: app.config.position,
+                        distance: app.config.distance,
+                        align: app.config.align,
+                        verticalAlign: app.config.verticalAlign,
+                        rotate: app.config.rotate,
+                        formatter: '{c}  {name|{a}}',
+                        fontSize: 16,
+                        rich: {
+                            name: {}
+                        }
+                    };
+                    option = {
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'shadow'
+                            }
+                        },
+                        legend: {
+                            data: ['总销售额', '总成本', '总利润']
+                        },
+                        toolbox: {
+                            show: true,
+                            orient: 'vertical',
+                            left: 'right',
+                            top: 'center',
+                            feature: {
+                                mark: {show: true},
+                                dataView: {show: true, readOnly: false},
+                                magicType: {show: true, type: ['line', 'bar', 'stack']},
+                                restore: {show: true},
+                                saveAsImage: {show: true}
+                            }
+                        },
+                        xAxis: [
+                            {
+                                type: 'category',
+                                axisTick: {show: false},
+                                data: dateList
+                            }
+                        ],
+                        yAxis: [
+                            {
+                                type: 'value'
+                            }
+                        ],
+                        series: [
+                            {
+                                name: '总销售额',
+                                type: 'bar',
+                                barGap: 0,
+                                label: labelOption,
+                                emphasis: {
+                                    focus: 'series'
+                                },
+                                data: saleList
+                            },
+                            {
+                                name: '总成本',
+                                type: 'bar',
+                                label: labelOption,
+                                emphasis: {
+                                    focus: 'series'
+                                },
+                                data: purchasingList
+                            },
+                            {
+                                name: '总利润',
+                                type: 'bar',
+                                label: labelOption,
+                                emphasis: {
+                                    focus: 'series'
+                                },
+                                data: profitList
+                            }
+                        ]
+                    };
+
+                    option && myChart.setOption(option);
+
+
+                },
+                error: function (data) {
+                    layer.alert(JSON.stringify(data), {
+                        title: data
+                    });
+                }
+            });
+        });
+    }
+
+</script>
+</body>
+</html>

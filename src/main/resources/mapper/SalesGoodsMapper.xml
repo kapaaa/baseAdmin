@@ -31,11 +31,26 @@
     </select>
 
     <select id="salesGroupByDate" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesCountVo">
-        SELECT  SUM(b.purchasing_price*b.sale_num) AS total_purchasing,sum(b.sale_price*b.sale_num) AS total_sale,b.create_time
-        FROM goods a
-        LEFT JOIN goods_sales b ON a.id=b.goods_id
-        WHERE b.create_time&gt;=#{startTime} AND b.create_time &lt;= #{endTime}
-        group BY b.create_time
+        SELECT  SUM(b.purchasing_price*b.sale_num) AS total_purchasing,sum(b.sale_price*b.sale_num) AS total_sale,
+
+        <if test="type == null or type == ''" >
+            b.create_time
+            FROM goods_sales b
+            WHERE b.create_time&gt;=#{startTime} AND b.create_time &lt;= #{endTime}
+            group BY b.create_time
+        </if>
+        <if test='type != null and type == "1"' >
+            CONCAT(YEAR(b.create_time) ,"") as create_time
+            FROM goods_sales b
+            WHERE b.create_time&gt;=#{startTime} AND b.create_time &lt;= #{endTime}
+            GROUP BY YEAR(b.create_time)*100
+        </if>
+        <if test='type != null and type == "2"' >
+            CONCAT(YEAR(b.create_time) ,"-", MONTH(b.create_time)) as create_time
+            FROM goods_sales b
+            WHERE b.create_time&gt;=#{startTime} AND b.create_time &lt;= #{endTime}
+            GROUP BY YEAR(b.create_time)*100 + MONTH(b.create_time)
+        </if>
         order by b.create_time asc
     </select>
 
@@ -58,11 +73,12 @@
         ORDER BY a.create_time DESC
     </select>
     <select id="salesGroupByType" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesReportByTypeVo">
-        SELECT  COUNT(b.type) as value,b.type
+        SELECT  sum(a.sale_num) as value,b.type
         FROM goods_sales a
             LEFT JOIN goods b ON a.goods_id=b.id
         WHERE a.create_time&gt;=#{startTime} AND a.create_time &lt;= #{endTime}
         GROUP BY b.type
     </select>
+
 
 </mapper>

@@ -23,7 +23,7 @@ public class ReportController {
 
     @GetMapping("/reports")
     public ModelAndView reports() {
-        return new ModelAndView("goods/salesReports");
+        return new ModelAndView("goods/salesReportByYear");
     }
 
     @GetMapping("/salesReport")
@@ -43,12 +43,11 @@ public class ReportController {
     }
 
     @GetMapping("/salesGroupByDate")
-    public Result salesGroupByDate(@RequestParam(required = false) String startTime, @RequestParam(required = false) String endTime) {
-        return goodsService.salesGroupByDate(startTime, endTime);
+    public Result salesGroupByDate(@RequestParam(required = false) String startTime, @RequestParam(required = false) String endTime,@RequestParam(required = false) String type) {
+        return goodsService.salesGroupByDate(startTime, endTime,type);
     }
     @GetMapping("/salesGroupByType")
     public Result salesGroupByType(@RequestParam(required = false) String startTime, @RequestParam(required = false) String endTime) {
         return goodsService.salesGroupByType(startTime, endTime);
     }
-
 }

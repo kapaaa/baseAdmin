@@ -10,6 +10,6 @@ public class SalesCountVo {
     private BigDecimal totalPurchasing;
     private BigDecimal totalSale;
     private BigDecimal totalProfit;
-    private Date createTime;
+    private String createTime;
 
 }

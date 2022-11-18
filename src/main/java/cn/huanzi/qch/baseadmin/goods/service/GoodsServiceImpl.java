@@ -122,10 +122,10 @@ public class GoodsServiceImpl extends CommonServiceImpl<GoodsVo, Goods, String> 
     }
 
     @Override
-    public Result salesGroupByDate(String startTime, String endTime) {
+    public Result salesGroupByDate(String startTime, String endTime, String type) {
         startTime = checkStartTime(startTime);
         endTime = checkEndTime(endTime);
-        List<SalesCountVo> salesCountVos = salesGoodsMapper.salesGroupByDate(startTime, endTime);
+        List<SalesCountVo> salesCountVos = salesGoodsMapper.salesGroupByDate(startTime, endTime, type);
         if (!CollectionUtils.isEmpty(salesCountVos)) {
             for (SalesCountVo e : salesCountVos) {
                 if (e != null && e.getTotalSale() != null && e.getTotalPurchasing() != null) {
@@ -148,11 +148,12 @@ public class GoodsServiceImpl extends CommonServiceImpl<GoodsVo, Goods, String> 
         startTime = checkStartTime(startTime);
         endTime = checkEndTime(endTime);
         List<SalesReportByTypeVo> salesReportByTypeVos = salesGoodsMapper.salesGroupByType(startTime, endTime);
-        for (SalesReportByTypeVo e:salesReportByTypeVos){
+        for (SalesReportByTypeVo e : salesReportByTypeVos) {
             e.setName(GoodsTypeEnum.getValue(e.getType()));
         }
         return Result.of(salesReportByTypeVos);
     }
+
 
     @Override
     public void update(GoodsVo goodsVo) {

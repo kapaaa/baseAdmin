@@ -56,9 +56,13 @@
 <!-- 注意：如果你直接复制所有代码到本地，上述 JS 路径需要改成你本地的 -->
 
 <script>
+    // 基于准备好的dom，初始化echarts实例
+    let myChart1 = echarts.init(document.getElementById('main'));
+    let myChart2 = echarts.init(document.getElementById('main2'));
+    let myChart3 = echarts.init(document.getElementById('main3'));
 
     layui.use('laydate', function () {
-        var laydate = layui.laydate;
+        let laydate = layui.laydate;
         //执行一个laydate实例
         laydate.render({
             elem: '#startTime' //指定元素
@@ -66,7 +70,7 @@
     });
 
     layui.use('laydate', function () {
-        var laydate = layui.laydate;
+        let laydate = layui.laydate;
         //执行一个laydate实例
         laydate.render({
             elem: '#endTime' //指定元素
@@ -76,9 +80,9 @@
     getSalesCount("", "", "");
 
     function search() {
-        var name = layui.$('#goodName').val();
-        var startTime = layui.$('#startTime').val();
-        var endTime = layui.$('#endTime').val();
+        let name = layui.$('#goodName').val();
+        let startTime = layui.$('#startTime').val();
+        let endTime = layui.$('#endTime').val();
         initTable(name, startTime, endTime);
         initEcharts();
     }
@@ -86,7 +90,7 @@
 
     function initTable(name, startTime, endTime) {
         layui.use('table', function () {
-            var table = layui.table;
+            let table = layui.table;
             table.render({
                 elem: '#test'
                 , url: '/report/salesReport?name=' + name + '&startTime=' + startTime + '&endTime=' + endTime
@@ -141,17 +145,16 @@
             type: "get",
             dataType: "json",
             success: function (data) {
-                var d = data.data
+                let d = data.data
                 let nameList = new Array(d.length)
                 let saleList = new Array(d.length)
                 for (let i = 0; i < d.length; i++) {
                     nameList[i] = d[i].name
                     saleList[i] = d[i].saleNum
                 }
-                // 基于准备好的dom，初始化echarts实例
-                var myChart1 = echarts.init(document.getElementById('main'));
+
                 // 指定图表的配置项和数据
-                var option = {
+                let option = {
                     title: {
                         text: '销量'
                     },
@@ -192,20 +195,20 @@
             // dataType: "json",
             contentType: 'application/json; charset=UTF-8',
             success: function (data) {
-                var d = data.data
+                let d = data.data
                 let saleList = new Array(data.length)
                 let dateList = new Array(data.length)
                 let purchasingList = new Array(data.length)
                 let profitList = new Array(data.length)
                 for (let i = 0; i < d.length; i++) {
-                    var strings = d[i].createTime.toString().split(" ")[0].split("-");
-                    dateList[i] = strings[1] + "-" + strings[2]
+                    // let strings = d[i].createTime.toString().split(" ")[0].split("-");
+                    dateList[i] = d[i].createTime.toString()
                     saleList[i] = d[i].totalSale
                     profitList[i] = d[i].totalProfit
                     purchasingList[i] = d[i].totalPurchasing
                 }
-                var myChart2 = echarts.init(document.getElementById('main2'));
-                var optionchartZhe = {
+
+                let optionchartZhe = {
                     title: {
                         text: '商品订单'
                     },
@@ -254,9 +257,12 @@
             // dataType: "json",
             contentType: 'application/json; charset=UTF-8',
             success: function (data) {
-                console.log(data)
-                var myChart3 = echarts.init(document.getElementById('main3'));
-                var optionchartBing = {
+                let nameList = new Array(data.data.length)
+                for (let i = 0; i < data.data.length; i++) {
+                    nameList[i]=data.data[i].name
+                }
+
+                let optionchartBing = {
                     title: {
                         text: '商品订单',
                         subtext: '', //副标题
@@ -268,7 +274,7 @@
                     legend: {
                         orient: 'vertical', //类型垂直,默认水平
                         left: 'left', //类型区分在左 默认居中
-                        data: ['单价', '总价', '销量', '产量']
+                        data: nameList
                     },
                     series: [{
                         type: 'pie', //饼状

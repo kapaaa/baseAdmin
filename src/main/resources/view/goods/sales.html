@@ -37,8 +37,14 @@
     }
 
     .sales {
+        width: 25px;
         margin-left: 164px;
-        margin-top: -191px;
+        margin-top: -186px;
+        position: absolute;
+    }
+    .sales_name {
+        margin-left: 0px;
+        margin-top: -186px;
         position: absolute;
     }
 
@@ -122,6 +128,7 @@
                 str += '  <div class="float-div" >\n' +
                     '        <img src=' + data[i].img + '>\n' +
                     '        <span class="layui-badge price sales" name=\"' + data[i].id + '\"id=\"' + data[i].goodsId + '\">' + data[i].saleNum + '</span>\n' +
+                    '        <span class="layui-badge price sales_name layui-bg-green" >' + data[i].name + '</span>\n' +
                     '        <button type="button" class="layui-btn button-sale" onclick="saleOne(\'' + data[i].goodsId + ","+data[i].purchasingPrice+","+data[i].salePrice+'\')">+</button>\n' +
                     '        <button type="button" class="layui-btn button-sale layui-btn-danger" onclick="returnOne(\'' + data[i].goodsId + '\')">-</button>\n' +
                     '</div>';
