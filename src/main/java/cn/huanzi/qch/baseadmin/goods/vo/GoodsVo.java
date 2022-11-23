@@ -23,6 +23,8 @@ public class GoodsVo extends PageCondition implements Serializable {
 
     private Integer type;//类型
 
+    private Integer stock;//库存
+
 
 
 

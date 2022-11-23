@@ -27,6 +27,8 @@ public class Goods implements Serializable {
 
     private Integer type;//类型
 
+    private Integer stock;//库存
+
     private Date createTime;//创建时间
 
     private Date updateTime;//修改时间

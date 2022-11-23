@@ -25,6 +25,10 @@ public class ReportController {
     public ModelAndView reports() {
         return new ModelAndView("goods/salesReportByYear");
     }
+    @GetMapping("/report2")
+    public ModelAndView reports2() {
+        return new ModelAndView("goods/salesGood");
+    }
 
     @GetMapping("/salesReport")
     public Result salesReport(@RequestParam(required = false) String startTime,

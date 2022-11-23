@@ -18,11 +18,17 @@
 
     .float-div {
         width: 200px;
-        height: 250px;
+        height: 200px;
         float: left;
         display: inline-block;
         box-shadow: 10px 10px 5px #8888;
         margin: 5px;
+    }
+
+    .li-div {
+        width: 100%;
+        height: 40px;
+        /*float: left;*/
     }
 
     img {
@@ -38,13 +44,14 @@
 
     .sales {
         width: 25px;
-        margin-left: 164px;
-        margin-top: -186px;
+        /*margin-left: -16%;*/
+        margin-top: 20px;
         position: absolute;
     }
+
     .sales_name {
-        margin-left: 0px;
-        margin-top: -186px;
+        /*margin-left: 0px;*/
+        margin-top: 0px;
         position: absolute;
     }
 
@@ -63,10 +70,15 @@
     <i id="saleCount"> </i>
 
 </div>
-<div id="tables"></div>
+<div id="tables" style="width: 80%;box-shadow: 10px 10px 5px #8888"></div>
+<div id="test1" style="height:100%;width: 20%;display: inline-block;box-shadow: 10px 10px 5px #8888;">
+    <button type="button" class="layui-btn" style="margin-left: 20px;" onclick="search()">确定</button>
+    <ul id="saleList" style="text-align:center;"></ul>
+</div>
 
 
 <script>
+    let goodData;
     layui.use('layer', function () {
         var layer = layui.layer;
         layer.ready(function () {
@@ -77,6 +89,7 @@
                 dataType: "json",
                 contentType: 'application/json; charset=UTF-8',
                 success: function (data) {
+                    goodData = data.data
                     if (data.flag) {
                         addGoods(data.data)
                         getSalesCount();
@@ -104,7 +117,7 @@
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
             success: function (data) {
-
+                goodData = data.data
                 if (data.flag) {
                     editGoods(data.data)
                 }
@@ -121,16 +134,18 @@
         layui.$('#tables').html(getHtml(data));
     }
 
+    function con() {
+        console.log(goodData)
+    }
+
     function getHtml(data) {
         str = '';
         if (data.length > 0) {
             for (let i = 0; i < data.length; i++) {
                 str += '  <div class="float-div" >\n' +
-                    '        <img src=' + data[i].img + '>\n' +
-                    '        <span class="layui-badge price sales" name=\"' + data[i].id + '\"id=\"' + data[i].goodsId + '\">' + data[i].saleNum + '</span>\n' +
-                    '        <span class="layui-badge price sales_name layui-bg-green" >' + data[i].name + '</span>\n' +
-                    '        <button type="button" class="layui-btn button-sale" onclick="saleOne(\'' + data[i].goodsId + ","+data[i].purchasingPrice+","+data[i].salePrice+'\')">+</button>\n' +
-                    '        <button type="button" class="layui-btn button-sale layui-btn-danger" onclick="returnOne(\'' + data[i].goodsId + '\')">-</button>\n' +
+                    '        <img src=\"' + data[i].img + '\" onclick="saleOne(\'' + data[i].goodsId + "," + data[i].purchasingPrice + "," + data[i].salePrice + "," + data[i].name + '\')">' +
+                    '        <span class="layui-badge price sales" name=\"' + data[i].id + '\"id=\"' + data[i].goodsId + '\">' + data[i].saleNum + '</span>' +
+                    '        <span class="layui-badge price sales_name layui-bg-green" >' + data[i].name + '</span>' +
                     '</div>';
             }
         }
@@ -141,28 +156,48 @@
         addOrReturn(str, 1);
     }
 
-    function returnOne(str) {
-        if ((Number(layui.$('#' + str).text())) > 0) {
-            addOrReturn(str, -1);
-        }
+    function returnOne() {
+        console.log("ssssssssss")
+            // if ((map.get(split[0])) === 1) {
+                layui.$(this).parent('div').remove()
+        // }
     }
 
+    let map = new Map();
 
     function addOrReturn(strs, num) {
-        var split = strs.split(",");
-        str = '#' + split[0]
-        var dom = layui.$(str);
-        var id = (dom.attr('name') == null || dom.attr('name') == 'null') ? '' : dom.attr('name');
-        var data = {'id': id, 'goodsId': split[0], 'saleNum': (Number(dom.text()) + num),'purchasingPrice':split[1],'salePrice':split[2]}
+        let split = strs.split(",");
+        let flag = true
         layui.$.ajax({
-            url: "/sales/saleOne",
-            data: JSON.stringify(data),
-            type: "post",
+            url: "/sales/checkStock?goodId=" + split[0],
+            data: {},
+            type: "get",
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
             success: function (data) {
-                dom.replaceWith('  <span class="layui-badge price sales" name=\"' + data.data.id + '\"id=\"' + data.data.goodsId + '\">' + data.data.saleNum + '</span>');
-                getSalesCount()
+                if (!data.data) {
+                    layer.open({
+                        title: '库存不足'
+                        , content: '请及时补充库存'
+                    });
+                } else {
+                    layui.$('ul#saleList li').each(function () {
+                        if (this.id === split[0]) {
+                            flag = false
+                            map.set(split[0], map.get(split[0]) + num)
+                            layui.$(this).html('<li style="display: inline-block;width: 65%;" id=\"' + split[0] + '\">  ' + split[3] + '<span style="margin-left: 20px;" class="layui-badge">' + map.get(split[0]) + '</span></li> ')
+                        }
+                    });
+                    if (flag) {
+                        map.set(split[0], 1);
+                        let a = layui.$('ul#saleList');
+                        a.append('<div class="li-div"> ' +
+                            '<button type="button" class="layui-btn layui-btn-primary" style="width: 15%;" onclick="returnOne()" >-</button>' +
+                            '<li style="display: inline-block;width: 65%;" id=\"' + split[0] + '\">  ' + split[3] + '<span style="margin-left: 20px;" class="layui-badge">1</span></li> ' +
+                            '<button type="button" class="layui-btn layui-btn-primary"  style="width: 15%;" onclick="con()">+</button>' +
+                            '</div>');
+                    }
+                }
             },
             error: function (data) {
                 layer.alert(JSON.stringify(data), {
@@ -191,6 +226,8 @@
             }
         });
     }
+
+
 </script>
 
 </body>

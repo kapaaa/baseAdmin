@@ -154,6 +154,14 @@ public class GoodsServiceImpl extends CommonServiceImpl<GoodsVo, Goods, String> 
         return Result.of(salesReportByTypeVos);
     }
 
+    @Override
+    public Result<Boolean> checkStock(String goodId) {
+        Goods goods = GoodsMapper.selectById(goodId);
+        if (goods != null && goods.getStock() != null && goods.getStock() > 0) {
+            return Result.of(true);
+        }
+        return Result.of(false);
+    }
 
     @Override
     public void update(GoodsVo goodsVo) {
@@ -165,6 +173,7 @@ public class GoodsServiceImpl extends CommonServiceImpl<GoodsVo, Goods, String> 
         goods.setPurchasingPrice(goodsVo.getPurchasingPrice());
         goods.setSalePrice(goodsVo.getSalePrice());
         goods.setType(goodsVo.getType());
+        goods.setStock(goodsVo.getStock());
         goods.setUpdateTime(new Date());
         GoodsMapper.updateById(goods);
     }

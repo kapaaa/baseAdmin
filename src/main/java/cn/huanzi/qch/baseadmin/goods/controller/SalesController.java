@@ -18,10 +18,9 @@ public class SalesController extends CommonController<GoodsVo, Goods, String> {
     private GoodsService goodsService;
 
     @GetMapping("/index")
-    public ModelAndView list() {
-        return new ModelAndView("/goods/sales");
+    public ModelAndView reports2() {
+        return new ModelAndView("goods/salesGood");
     }
-
 
     @GetMapping("/list")
     @ResponseBody
@@ -34,7 +33,11 @@ public class SalesController extends CommonController<GoodsVo, Goods, String> {
     public Result saleOne(@RequestBody SalesGoodsVo goods) {
         return goodsService.salesOne(goods);
     }
-
+    @GetMapping("/checkStock")
+    @ResponseBody
+    public Result checkStock(@RequestParam String goodId) {
+        return goodsService.checkStock(goodId);
+    }
 
     @GetMapping("/salesCount")
     public Result getSalesCount(@RequestParam(required = false) String startTime,

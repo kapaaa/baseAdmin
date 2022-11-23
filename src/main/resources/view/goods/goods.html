@@ -44,6 +44,13 @@
             </div>
         </div>
         <div class="layui-form-item">
+            <label class="layui-form-label">库存</label>
+            <div class="layui-input-block">
+                <input type="text" name="title" required lay-verify="required" autocomplete="on"
+                       class="layui-input" id="stock" style="width:100px">
+            </div>
+        </div>
+        <div class="layui-form-item">
             <label class="layui-form-label">图片地址</label>
             <div class="layui-input-block">
                 <input type="text" name="title" required lay-verify="required" placeholder="请输入名称" autocomplete="on"
@@ -158,14 +165,35 @@
             , cols: [
                 [
                     {type: 'checkbox', fixed: 'left'}
-                    ,{field:'id', title:'ID', width:120, fixed: 'left', unresize: true, sort: true}
-                    , {field: 'name', title: '商品名称', width: 120}
-                    , {field: 'code', title: '编号', width: 80,  sort: true}
-                    , {field: 'salePrice', title: '售价', width: 80,  sort: true}
-                    , {field: 'purchasingPrice', title: '进价', width: 80,  sort: true}
-                    , {field: 'img', title: '图片', width: 100,height:100, align: 'center',templet: function(d) { return '<div onclick="show_img(this)" ><img src="'+d.img+'" ' + 'alt="" width="100px" height="200px"></a></div>'; }}
-                    , {field: 'type', title: '类型'}
-                    , {fixed: 'right', title: '操作', toolbar: '#barDemo', width: 150}
+                    , {field: 'id', title: 'ID', fixed: 'left', unresize: true, sort: true}
+                    , {field: 'name', title: '商品名称',}
+                    , {field: 'code', title: '编号', sort: true}
+                    , {field: 'salePrice', title: '售价', sort: true}
+                    , {field: 'purchasingPrice', title: '进价', sort: true}
+                    , {field: 'stock', title: '库存', sort: true}
+                    , {
+                    field: 'img', title: '图片', height: 100, align: 'center', templet: function (d) {
+                        return '<div onclick="show_img(this)" ><img src="' + d.img + '" ' + 'alt="" width="100px" height="200px"></a></div>';
+                    }
+                }
+                    , {
+                    field: 'type', title: '类型', sort: true, templet: function (d) {
+                        if (d.type == '') {
+                            return '未选择';
+                        } else if (d.type==1) {
+                            return '饮料';
+                        }else if (d.type==2) {
+                            return '食品';
+                        }else if (d.type==3) {
+                            return '槟榔';
+                        }else if (d.type==4) {
+                            return '香烟';
+                        }else if (d.type==5) {
+                            return '其他';
+                        }
+                    }
+                }
+                    , {fixed: 'right', title: '操作', toolbar: '#barDemo'}
                 ]
             ]
             , page: true
@@ -182,6 +210,7 @@
                     layui.$('#salePrice').removeAttr('value');
                     layui.$('#img').removeAttr('value');
                     layui.$('#type').removeAttr('value');
+                    layui.$('#stock').removeAttr('stock');
                     layer.open({
                         type: 1,
                         area: ['500px', '600px'],
@@ -196,13 +225,15 @@
                             var code = layui.$("#code").val();
                             var img = layui.$("#img").val();
                             var type = layui.$("#type").val();
+                            var stock = layui.$("#stock").val();
                             var data = {
                                 'name': name,
                                 'salePrice': salePrice,
                                 'purchasingPrice': purchasingPrice,
                                 'code': code,
                                 'img': img,
-                                'type': type
+                                'type': type,
+                                'stock': stock
                             }
                             layui.$.ajax({
                                 url: "/goods/add",
@@ -272,12 +303,12 @@
                     layer.close(index);
                 });
             } else if (obj.event === 'edit') {
-                console.log(data)
-                layui.$('#name').attr('value',data.name);
-                layui.$('#code').attr('value',data.code);
-                layui.$('#purchasingPrice').attr('value',data.purchasingPrice);
-                layui.$('#salePrice').attr('value',data.salePrice);
-                layui.$('#img').attr('value',data.img);
+                layui.$('#name').attr('value', data.name);
+                layui.$('#code').attr('value', data.code);
+                layui.$('#purchasingPrice').attr('value', data.purchasingPrice);
+                layui.$('#salePrice').attr('value', data.salePrice);
+                layui.$('#img').attr('value', data.img);
+                layui.$('#stock').attr('value', data.stock);
                 // layui.$('#type').attr('value',data.type);
                 layer.open({
                     type: 1,
@@ -293,6 +324,7 @@
                         var code = layui.$("#code").val();
                         var img = layui.$("#img").val();
                         var type = layui.$("#type").val();
+                        var stock = layui.$("#stock").val();
                         var datas = {
                             'name': name,
                             'salePrice': salePrice,
@@ -300,7 +332,8 @@
                             'code': code,
                             'img': img,
                             'type': type,
-                            'id':data.id,
+                            'id': data.id,
+                            'stock': stock,
                         }
                         layui.$.ajax({
                             url: "/goods/update",
@@ -330,6 +363,7 @@
             }
         });
     })
+
     function show_img(t) {
         var t = layui.$(t).find("img");
         //页面层
