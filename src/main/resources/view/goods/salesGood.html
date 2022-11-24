@@ -156,11 +156,11 @@
         addOrReturn(str, 1);
     }
 
-    function returnOne() {
-        console.log("ssssssssss")
-            // if ((map.get(split[0])) === 1) {
-                layui.$(this).parent('div').remove()
-        // }
+    function returnOne(e) {
+        console.log(e)
+        $("#editdelete").on("click", function() {
+            $(this).parent().remove();
+        })
     }
 
     let map = new Map();
@@ -192,7 +192,7 @@
                         map.set(split[0], 1);
                         let a = layui.$('ul#saleList');
                         a.append('<div class="li-div"> ' +
-                            '<button type="button" class="layui-btn layui-btn-primary" style="width: 15%;" onclick="returnOne()" >-</button>' +
+                            '<button id="editdelete" type="button" class="layui-btn layui-btn-primary" style="width: 15%;" >-</button>' +
                             '<li style="display: inline-block;width: 65%;" id=\"' + split[0] + '\">  ' + split[3] + '<span style="margin-left: 20px;" class="layui-badge">1</span></li> ' +
                             '<button type="button" class="layui-btn layui-btn-primary"  style="width: 15%;" onclick="con()">+</button>' +
                             '</div>');
