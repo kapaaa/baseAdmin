@@ -36,6 +36,10 @@
         height: 200px;
         background-repeat: no-repeat;
     }
+    li{
+        width: 55%;
+        display: inline-block;
+    }
 
     .button-sale {
         width: 65px;
@@ -48,7 +52,9 @@
         margin-top: 20px;
         position: absolute;
     }
-
+    .salesNum {
+       float: right;
+    }
     .sales_name {
         /*margin-left: 0px;*/
         margin-top: 0px;
@@ -67,18 +73,19 @@
         </div>
     </div>
     <button type="button" class="layui-btn" onclick="search()">搜索</button>
-    <i id="saleCount"> </i>
+<!--    <i id="saleCount"> </i>-->
 
 </div>
-<div id="tables" style="width: 80%;box-shadow: 10px 10px 5px #8888"></div>
-<div id="test1" style="height:100%;width: 20%;display: inline-block;box-shadow: 10px 10px 5px #8888;">
+<div id="tables" style="width: 80%;display: inline-block;"></div>
+<div id="test1" style="float: right;height:600px;width: 20%;display: inline-block;box-shadow: inset 1px 6px 11px 0px #00000088;">
+    <span>购物单</span>
     <button type="button" class="layui-btn" style="margin-left: 20px;" onclick="search()">确定</button>
     <ul id="saleList" style="text-align:center;"></ul>
 </div>
 
 
 <script>
-    let goodData;
+    let map = new Map();
     layui.use('layer', function () {
         var layer = layui.layer;
         layer.ready(function () {
@@ -89,9 +96,8 @@
                 dataType: "json",
                 contentType: 'application/json; charset=UTF-8',
                 success: function (data) {
-                    goodData = data.data
                     if (data.flag) {
-                        addGoods(data.data)
+                        addGoodList(data.data)
                         getSalesCount();
                     }
                 },
@@ -105,19 +111,19 @@
 
     });
 
-    function addGoods(data) {
+    function addGoodList(data) {
         layui.$('#tables').append(getHtml(data));
     }
 
     function search() {
         layui.$.ajax({
-            url: "/sales/list",
+            url: "/sales/list?da=as",
             data: {"key": layui.$("#key").val()},
             type: "get",
+            async: false,
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
             success: function (data) {
-                goodData = data.data
                 if (data.flag) {
                     editGoods(data.data)
                 }
@@ -134,17 +140,13 @@
         layui.$('#tables').html(getHtml(data));
     }
 
-    function con() {
-        console.log(goodData)
-    }
-
     function getHtml(data) {
         str = '';
         if (data.length > 0) {
             for (let i = 0; i < data.length; i++) {
                 str += '  <div class="float-div" >\n' +
                     '        <img src=\"' + data[i].img + '\" onclick="saleOne(\'' + data[i].goodsId + "," + data[i].purchasingPrice + "," + data[i].salePrice + "," + data[i].name + '\')">' +
-                    '        <span class="layui-badge price sales" name=\"' + data[i].id + '\"id=\"' + data[i].goodsId + '\">' + data[i].saleNum + '</span>' +
+                    '        <span class="layui-badge price sales" name=\"' + data[i].id + '\"id=\"' + data[i].goodsId + '\">' + data[i].stock + '</span>' +
                     '        <span class="layui-badge price sales_name layui-bg-green" >' + data[i].name + '</span>' +
                     '</div>';
             }
@@ -156,21 +158,40 @@
         addOrReturn(str, 1);
     }
 
-    function returnOne(e) {
-        console.log(e)
-        $("#editdelete").on("click", function() {
-            $(this).parent().remove();
-        })
+    function returnOne(id) {
+        var num = (map.get(id)-1);
+        if (num===0){
+            map.delete(id)
+            layui.$('ul#saleList li').each(function () {
+                if (this.id === id) {
+                    layui.$(this).parent().remove();
+                }
+            });
+
+        }else {
+            map.set(id,num)
+            layui.$('ul#saleList li').each(function () {
+                if (this.id === id) {
+                    var $li = layui.$(this);
+                    var val = $li.html().split("<")[1];
+                    var splitElement = val.split(">")[1];
+                    $li.replaceWith('<li  id=\"' + id + '\">  ' + splitElement + ' <i class="layui-badge salesNum">' + num + '</i></li>')
+                }
+            });
+        }
     }
 
-    let map = new Map();
 
     function addOrReturn(strs, num) {
         let split = strs.split(",");
-        let flag = true
+        let flag = true;
+        let count = 0;
+        if (map.has(split[0])){
+            count =map.get(split[0])
+        }
         layui.$.ajax({
-            url: "/sales/checkStock?goodId=" + split[0],
-            data: {},
+            url: "/sales/checkStock?",
+            data: {"goodId":split[0],"stock":(count+num)},
             type: "get",
             dataType: "json",
             contentType: 'application/json; charset=UTF-8',
@@ -182,18 +203,21 @@
                     });
                 } else {
                     layui.$('ul#saleList li').each(function () {
+                        console.log(this.id)
                         if (this.id === split[0]) {
+                            console.log(map)
                             flag = false
-                            map.set(split[0], map.get(split[0]) + num)
-                            layui.$(this).html('<li style="display: inline-block;width: 65%;" id=\"' + split[0] + '\">  ' + split[3] + '<span style="margin-left: 20px;" class="layui-badge">' + map.get(split[0]) + '</span></li> ')
+                            var newNum = map.get(split[0]) + num;
+                            map.set(split[0], newNum)
+                            layui.$(this).replaceWith('<li id=\"' + split[0] + '\">  ' + split[3] + '<span class="layui-badge salesNum">' + map.get(split[0]) + '</span> </li>')
                         }
                     });
                     if (flag) {
                         map.set(split[0], 1);
                         let a = layui.$('ul#saleList');
                         a.append('<div class="li-div"> ' +
-                            '<button id="editdelete" type="button" class="layui-btn layui-btn-primary" style="width: 15%;" >-</button>' +
-                            '<li style="display: inline-block;width: 65%;" id=\"' + split[0] + '\">  ' + split[3] + '<span style="margin-left: 20px;" class="layui-badge">1</span></li> ' +
+                            '<button type="button" onclick="returnOne(\''+split[0]+'\')" class="layui-btn layui-btn-primary" style="width: 15%;">-</button>' +
+                            '<li id=\"' + split[0] + '\">  ' + split[3] + '<span class="layui-badge salesNum"> 1 </span></li> ' +
                             '<button type="button" class="layui-btn layui-btn-primary"  style="width: 15%;" onclick="con()">+</button>' +
                             '</div>');
                     }
@@ -207,25 +231,25 @@
         });
     }
 
-    function getSalesCount() {
-        var time = new Date().toLocaleDateString();
-        layui.$.ajax({
-            url: '/sales/salesCount?' + 'startTime=' + time + '&endTime=' + time,
-            data: {},
-            type: "get",
-            // dataType: "json",
-            contentType: 'application/json; charset=UTF-8',
-            success: function (data) {
-                layui.$('#saleCount').html(
-                    "<i class=\"layui-icon layui-icon-rmb\" style=\"font-size: 20px; color: #e5084d;\">总售价: " + data.data.totalSale + " </i>");
-            },
-            error: function (data) {
-                layer.alert(JSON.stringify(data), {
-                    title: data
-                });
-            }
-        });
-    }
+    // function getSalesCount() {
+    //     var time = new Date().toLocaleDateString();
+    //     layui.$.ajax({
+    //         url: '/sales/salesCount?' + 'startTime=' + time + '&endTime=' + time,
+    //         data: {},
+    //         type: "get",
+    //         // dataType: "json",
+    //         contentType: 'application/json; charset=UTF-8',
+    //         success: function (data) {
+    //             layui.$('#saleCount').html(
+    //                 "<i class=\"layui-icon layui-icon-rmb\" style=\"font-size: 20px; color: #e5084d;\">总售价: " + data.data.totalSale + " </i>");
+    //         },
+    //         error: function (data) {
+    //             layer.alert(JSON.stringify(data), {
+    //                 title: data
+    //             });
+    //         }
+    //     });
+    // }
 
 
 </script>

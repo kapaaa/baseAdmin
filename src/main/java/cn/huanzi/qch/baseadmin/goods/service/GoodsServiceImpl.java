@@ -155,9 +155,9 @@ public class GoodsServiceImpl extends CommonServiceImpl<GoodsVo, Goods, String> 
     }
 
     @Override
-    public Result<Boolean> checkStock(String goodId) {
+    public Result<Boolean> checkStock(String goodId, Integer stock) {
         Goods goods = GoodsMapper.selectById(goodId);
-        if (goods != null && goods.getStock() != null && goods.getStock() > 0) {
+        if (goods != null && goods.getStock() != null && goods.getStock() >= stock) {
             return Result.of(true);
         }
         return Result.of(false);

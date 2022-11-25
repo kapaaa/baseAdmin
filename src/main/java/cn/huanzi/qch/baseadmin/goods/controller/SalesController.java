@@ -35,8 +35,8 @@ public class SalesController extends CommonController<GoodsVo, Goods, String> {
     }
     @GetMapping("/checkStock")
     @ResponseBody
-    public Result checkStock(@RequestParam String goodId) {
-        return goodsService.checkStock(goodId);
+    public Result checkStock(@RequestParam String goodId,@RequestParam Integer stock) {
+        return goodsService.checkStock(goodId,stock);
     }
 
     @GetMapping("/salesCount")

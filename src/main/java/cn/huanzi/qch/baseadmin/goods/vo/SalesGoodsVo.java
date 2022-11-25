@@ -13,4 +13,5 @@ public class SalesGoodsVo {
     private BigDecimal purchasingPrice;
     private BigDecimal salePrice;
     private String img;
+    private Integer stock;
 }

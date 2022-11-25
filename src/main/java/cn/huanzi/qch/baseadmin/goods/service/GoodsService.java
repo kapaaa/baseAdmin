@@ -48,5 +48,5 @@ public interface GoodsService extends CommonService<GoodsVo, Goods, String> {
 
     Result salesGroupByType(String startTime, String endTime);
 
-    Result<Boolean> checkStock(String goodId);
+    Result<Boolean> checkStock(String goodId, Integer stock);
 }

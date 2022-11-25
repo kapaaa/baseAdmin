@@ -55,7 +55,7 @@
     </select>
 
     <select id="salesGoodsList" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesGoodsVo">
-        SELECT  b.id,a.id as goods_id,a.name,a.purchasing_price,a.sale_price,IFNULL(b.sale_num,0) AS sale_num,a.img
+        SELECT  b.id,a.id as goods_id,a.name,a.purchasing_price,a.sale_price,IFNULL(b.sale_num,0) AS sale_num,a.img,a.stock
         FROM goods a
         LEFT JOIN goods_sales b ON a.id=b.goods_id AND b.create_time=#{time} ${sql}
     </select>
