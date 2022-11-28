@@ -5,27 +5,18 @@ import lombok.Data;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Date;
 
 @Entity
-@Table(name = "goods_sales")
+@Table(name = "order_details")
 @Data
-public class SalesGoods implements Serializable {
+public class OrderDetails {
     @Id
-    private String id;//
-
-    private String goodsId;
-
-    private String userName;
-
+    private String id;
+    private String orderId;
+    private String goodId;
     private Integer saleNum;//销售数量
-
-    private Date createTime;
-
     private BigDecimal purchasingPrice;//进货价格
-
     private BigDecimal salePrice;//销售价格
 
 }

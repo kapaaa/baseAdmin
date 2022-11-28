@@ -3,12 +3,13 @@ package cn.huanzi.qch.baseadmin.goods.service;
 import cn.huanzi.qch.baseadmin.common.emum.GoodsTypeEnum;
 import cn.huanzi.qch.baseadmin.common.pojo.Result;
 import cn.huanzi.qch.baseadmin.goods.pojo.Goods;
+import cn.huanzi.qch.baseadmin.goods.pojo.OrderDetails;
+import cn.huanzi.qch.baseadmin.goods.pojo.Orders;
 import cn.huanzi.qch.baseadmin.goods.repository.GoodsMapper;
+import cn.huanzi.qch.baseadmin.goods.repository.OrderDetailsMapper;
+import cn.huanzi.qch.baseadmin.goods.repository.OrdersMapper;
 import cn.huanzi.qch.baseadmin.goods.repository.SalesGoodsMapper;
-import cn.huanzi.qch.baseadmin.goods.vo.SalesCountVo;
-import cn.huanzi.qch.baseadmin.goods.vo.SalesGoodsVo;
-import cn.huanzi.qch.baseadmin.goods.vo.SalesReportByTypeVo;
-import cn.huanzi.qch.baseadmin.goods.vo.SalesReportVo;
+import cn.huanzi.qch.baseadmin.goods.vo.*;
 import cn.huanzi.qch.baseadmin.util.SecurityUtil;
 import cn.huanzi.qch.baseadmin.util.UUIDUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -30,7 +34,11 @@ public class SalesServiceImpl implements SalesService {
     @Autowired
     private SalesGoodsMapper salesGoodsMapper;
     @Autowired
-    private GoodsMapper GoodsMapper;
+    private GoodsMapper goodsMapper;
+    @Autowired
+    private OrdersMapper ordersMapper;
+    @Autowired
+    private OrderDetailsMapper orderDetailsMapper;
 
 
     @Override
@@ -40,16 +48,43 @@ public class SalesServiceImpl implements SalesService {
         } else {
             key = "";
         }
-        List<SalesGoodsVo> salesGoodsVos = salesGoodsMapper.salesGoodsList(key, new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+        List<SalesGoodsVo> salesGoodsVos = salesGoodsMapper.salesGoodsList(key);
         return Result.of(salesGoodsVos);
     }
 
     @Override
     @Transactional
-    public synchronized Result<SalesGoodsVo> sales(SalesGoodsVo goods) {
-        String id = goods.getId().isEmpty() ? UUIDUtil.getUuid() : goods.getId();
-        salesGoodsMapper.salesOne(id, goods.getGoodsId(), goods.getSaleNum(), new SimpleDateFormat("yyyy-MM-dd").format(new Date()), SecurityUtil.getLoginUser().getUsername(), goods.getPurchasingPrice(), goods.getSalePrice());
-        return Result.of(salesGoodsMapper.findSalesGoodsById(id));
+    public synchronized Result sales(OrdersVo orderVos) {
+
+        Orders orders = new Orders();
+        String orderId = UUIDUtil.getUuid();
+        orders.setId(orderId);
+        orders.setPayType(orderVos.getPayType());
+        orders.setUserName(SecurityUtil.getLoginUser().getUsername());
+        orders.setCreateTime(new Date());
+        BigDecimal amount = new BigDecimal(0);
+        BigDecimal cost = new BigDecimal(0);
+
+        List<OrderDetails> orderDetailsList = new ArrayList<>();
+        for (OrderDetailsVo o : orderVos.getOrderDetails()) {
+            OrderDetails orderDetails = new OrderDetails();
+            orderDetails.setId(UUIDUtil.getUuid());
+            orderDetails.setGoodId(o.getGoodId());
+            orderDetails.setOrderId(orderId);
+            orderDetails.setPurchasingPrice(o.getPurchasingPrice());
+            orderDetails.setSaleNum(o.getSaleNum());
+            orderDetails.setSalePrice(o.getSalePrice());
+            orderDetailsList.add(orderDetails);
+            amount = amount.add(o.getSalePrice().multiply(BigDecimal.valueOf(o.getSaleNum())));
+            cost = cost.add(o.getPurchasingPrice().multiply(BigDecimal.valueOf(o.getSaleNum())));
+            //TODO 库存
+            salesGoodsMapper.updateStock(o.getGoodId(), o.getSaleNum());
+        }
+        orders.setAmount(amount);
+        orders.setCost(cost);
+        ordersMapper.insert(orders);
+        orderDetailsMapper.batchInsert(orderDetailsList);
+        return Result.of(null);
     }
 
     @Override
@@ -113,7 +148,7 @@ public class SalesServiceImpl implements SalesService {
 
     @Override
     public Result<Boolean> checkStock(String goodId, Integer stock) {
-        Goods goods = GoodsMapper.selectById(goodId);
+        Goods goods = goodsMapper.selectById(goodId);
         if (goods != null && goods.getStock() != null && goods.getStock() >= stock) {
             return Result.of(true);
         }
@@ -122,7 +157,7 @@ public class SalesServiceImpl implements SalesService {
 
     public String checkStartTime(String startTime) {
         if (startTime.isEmpty()) {
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd ");
             Calendar cale = Calendar.getInstance();
             cale.add(Calendar.MONTH, 0);
             cale.set(Calendar.DAY_OF_MONTH, 1);
@@ -132,11 +167,17 @@ public class SalesServiceImpl implements SalesService {
     }
 
     public String checkEndTime(String endTime) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (endTime.isEmpty()) {
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
             return format.format(new Date());
         }
-        return endTime;
+        Date parse = null;
+        try {
+            parse = format.parse(endTime + " 23:59:59");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return format.format(parse);
     }
 
 }

@@ -92,10 +92,10 @@
     <h1 style="text-align:center">购物清单</h1>
     <div>
         <div class="layui-form-item">
-            <label class="layui-form-label">单选框</label>
+            <label class="layui-form-label">支付方式</label>
             <div class="layui-input-block">
-                微信<input type="radio" name="sex" value="1" title="男">
-                支付宝<input type="radio" name="sex" value="2" title="女" checked>
+                微信<input type="radio" name="payType" value="1" title="微信" checked>
+                支付宝<input type="radio" name="payType" value="2" title="支付宝" >
             </div>
         </div>
         <button type="button" class="layui-btn" onclick="saleSubmit()">确定</button>
@@ -147,7 +147,7 @@
             contentType: 'application/json; charset=UTF-8',
             success: function (data) {
                 if (data.flag) {
-                    editGoods(data.data)
+                    editGoodList(data.data)
                 }
             },
             error: function (data) {
@@ -158,7 +158,7 @@
         });
     }
 
-    function editGoods(data) {
+    function editGoodList(data) {
         layui.$('#tables').html(getHtml(data));
     }
 
@@ -180,8 +180,36 @@
 
 
     function saleSubmit() {
-        map.clear();
-        layui.$('ul#saleList').replaceWith('<ul id="saleList" style="text-align:center;"></ul>');
+        let list = [];
+        let i = 0;
+        map.forEach((key, val) => {
+            list[i] = {"goodId": val, "purchasingPrice": goodsMap.get(val).purchasingPrice,"salePrice":goodsMap.get(val).salePrice,"saleNum":map.get(val)}
+            i++
+        })
+        let data = {
+            "payType": layui.$('input:radio[name="payType"]:checked').val(), "orderDetails": list
+        }
+        if (list.length===0){
+            return
+        }
+        layui.$.ajax({
+            url: "/sales/sales?",
+            data: JSON.stringify(data),
+            type: "post",
+            dataType: "json",
+            contentType: 'application/json; charset=UTF-8',
+            success: function (data) {
+                if (data.flag) {
+                    map.clear();
+                    layui.$('ul#saleList').replaceWith('<ul id="saleList" style="text-align:center;"></ul>');
+                }
+            },
+            error: function (data) {
+                layer.alert(JSON.stringify(data), {
+                    title: data
+                });
+            }
+        });
     }
 
     function returnOne(id) {

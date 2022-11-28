@@ -64,7 +64,8 @@
     layui.use('layer', function () {
         let date = new Date();
         let startTime = date.getFullYear() + "-" + 1 + "-" + 1
-        let endTime = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+        // let endTime = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+        let endTime = "";
         loadEcharts(startTime, endTime, 2)
     });
 
@@ -76,9 +77,9 @@
         if (startTime == "") {
             startTime = (date.getFullYear() + "-" + 1 + "-" + 1)
         }
-        if (endTime == "") {
-            endTime = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
-        }
+        // if (endTime == "") {
+        //     endTime = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
+        // }
         loadEcharts(startTime, endTime, type)
     }
 

@@ -74,14 +74,6 @@ public class GoodsServiceImpl extends CommonServiceImpl<GoodsVo, Goods, String> 
     }
 
     @Override
-    @Transactional
-    public synchronized Result<SalesGoodsVo> sales(SalesGoodsVo goods) {
-        String id = goods.getId().isEmpty() ? UUIDUtil.getUuid() : goods.getId();
-        salesGoodsMapper.salesOne(id, goods.getGoodsId(), goods.getSaleNum(), new SimpleDateFormat("yyyy-MM-dd").format(new Date()), SecurityUtil.getLoginUser().getUsername(), goods.getPurchasingPrice(), goods.getSalePrice());
-        return Result.of(salesGoodsMapper.findSalesGoodsById(id));
-    }
-
-    @Override
     public void update(GoodsVo goodsVo) {
         Goods goods = new Goods();
         goods.setName(goodsVo.getName());

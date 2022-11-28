@@ -17,17 +17,8 @@ import java.util.List;
 public interface SalesGoodsMapper extends BaseMapper<SalesGoods> {
 
 
-    List<SalesGoodsVo> salesGoodsList(@Param("sql") String sql, @Param("time") String time);
+    List<SalesGoodsVo> salesGoodsList(@Param("sql") String sql);
 
-    Integer salesOne(@Param("id") String id,
-                     @Param("goodsId") String goodsId,
-                     @Param("saleNum") Integer saleNum,
-                     @Param("createTime") String createTime,
-                     @Param("userName") String userName,
-                     @Param("purchasingPrice") BigDecimal purchasingPrice,
-                     @Param("salePrice") BigDecimal salePrice);
-
-    SalesGoodsVo findSalesGoodsById(@Param("id") String id);
 
     List<SalesReportVo> salesReport(@Param("startTime") String startTime, @Param("endTime") String endTime, @Param("name") String name);
 
@@ -39,4 +30,5 @@ public interface SalesGoodsMapper extends BaseMapper<SalesGoods> {
 
     List<SalesReportByTypeVo> salesGroupByType(String startTime, String endTime);
 
+    int updateStock(String goodId,Integer stock);
 }

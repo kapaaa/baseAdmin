@@ -8,7 +8,5 @@ import cn.huanzi.qch.baseadmin.goods.vo.SalesGoodsVo;
 
 public interface GoodsService extends CommonService<GoodsVo, Goods, String> {
 
-    Result<SalesGoodsVo> sales(SalesGoodsVo goods);
-
     void update(GoodsVo goodsVo);
 }

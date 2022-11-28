@@ -6,10 +6,13 @@ import cn.huanzi.qch.baseadmin.goods.pojo.Goods;
 import cn.huanzi.qch.baseadmin.goods.service.GoodsService;
 import cn.huanzi.qch.baseadmin.goods.service.SalesService;
 import cn.huanzi.qch.baseadmin.goods.vo.GoodsVo;
+import cn.huanzi.qch.baseadmin.goods.vo.OrdersVo;
 import cn.huanzi.qch.baseadmin.goods.vo.SalesGoodsVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/sales")
@@ -39,13 +42,13 @@ public class SalesController extends CommonController<GoodsVo, Goods, String> {
     /**
      * 出售
      *
-     * @param goods
+     * @param orders
      * @return
      */
     @PostMapping("/sales")
     @ResponseBody
-    public Result sales(@RequestBody SalesGoodsVo goods) {
-        return salesService.sales(goods);
+    public Result sales(@RequestBody OrdersVo orders) {
+        return salesService.sales(orders);
     }
     @GetMapping("/checkStock")
     @ResponseBody
