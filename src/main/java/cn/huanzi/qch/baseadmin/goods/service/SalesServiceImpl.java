@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -52,10 +51,10 @@ public class SalesServiceImpl implements SalesService {
         return Result.of(salesGoodsVos);
     }
 
+
     @Override
     @Transactional
     public synchronized Result sales(OrdersVo orderVos) {
-
         Orders orders = new Orders();
         String orderId = UUIDUtil.getUuid();
         orders.setId(orderId);
@@ -88,24 +87,23 @@ public class SalesServiceImpl implements SalesService {
     }
 
     @Override
-    public Result<com.github.pagehelper.PageInfo<SalesReportVo>> salesReport(String startTime, String endTime, String name) {
-        if (StringUtils.isEmpty(startTime) || StringUtils.isEmpty(endTime)) {
-            String format = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-            startTime = format;
-            endTime = format;
-        }
-        List<SalesReportVo> salesReportVos = salesGoodsMapper.salesReport(startTime, endTime, name);
-        com.github.pagehelper.PageInfo<SalesReportVo> pageInfo = new com.github.pagehelper.PageInfo<>(salesReportVos);
+    public Result<com.github.pagehelper.PageInfo<OrdersReportVo>> salesReport(String startTime, String endTime, String name) {
+        startTime = checkStartTime(startTime);
+        endTime = checkEndTime(endTime);
+        List<OrdersReportVo> salesReportVos = salesGoodsMapper.salesReport(startTime, endTime, name);
+        com.github.pagehelper.PageInfo<OrdersReportVo> pageInfo = new com.github.pagehelper.PageInfo<>(salesReportVos);
         return Result.of(pageInfo);
     }
 
     @Override
+    public Result<List<OrderDetailsGoodVo>> orderDetails(String orderId) {
+        return Result.of(orderDetailsMapper.orderDetails(orderId));
+    }
+
+    @Override
     public Result<SalesCountVo> getSalesCount(String startTime, String endTime, String name) {
-        if (StringUtils.isEmpty(startTime) || StringUtils.isEmpty(endTime)) {
-            String format = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-            startTime = format;
-            endTime = format;
-        }
+        startTime = checkStartTime(startTime);
+        endTime = checkEndTime(endTime);
         SalesCountVo salesCountVo = salesGoodsMapper.salesCount(startTime, endTime, name);
         if (salesCountVo != null && salesCountVo.getTotalSale() != null && salesCountVo.getTotalPurchasing() != null) {
             salesCountVo.setTotalProfit(salesCountVo.getTotalSale().subtract(salesCountVo.getTotalPurchasing()));
@@ -129,7 +127,7 @@ public class SalesServiceImpl implements SalesService {
     }
 
     @Override
-    public Result<List<SalesReportVo>> salesGroupByName(String startTime, String endTime) {
+    public Result<List<SalesReportByNameVo>> salesGroupByName(String startTime, String endTime) {
         startTime = checkStartTime(startTime);
         endTime = checkEndTime(endTime);
         return Result.of(salesGoodsMapper.salesGroupByName(startTime, endTime));

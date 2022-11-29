@@ -5,16 +5,15 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class SalesReportVo {
+public class OrdersReportVo {
 
-    private String name;
-    private BigDecimal purchasingPrice;
+    private String id;
     private BigDecimal totalPurchasing;
-    private BigDecimal salePrice;
     private BigDecimal totalSale;
-    private Integer saleNum;
     private BigDecimal profit;
     private String createTime;
+    private Integer payType;
+    private String userName;
 
 
 }

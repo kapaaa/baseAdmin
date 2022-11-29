@@ -5,25 +5,21 @@
         UPDATE goods SET stock=stock-#{stock} WHERE id =#{goodId}
     </update>
 
-    <select id="salesReport" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesReportVo">
-        SELECT   a.name ,b.purchasing_price,b.sale_price, b.sale_num ,b.create_time, (b.purchasing_price*b.sale_num) AS total_purchasing,
-               (b.sale_price*b.sale_num) AS total_sale,(SELECT total_sale)-(SELECT total_purchasing) as profit
-        FROM goods a
-        LEFT JOIN goods_sales b ON a.id=b.goods_id
-        WHERE b.create_time&gt;=#{startTime} AND b.create_time &lt;= #{endTime}
-        <if test="name != null and name != ''" >
-            and a.name like concat(#{name},'%')
-        </if>
-        order by b.create_time desc
+    <select id="salesReport" resultType="cn.huanzi.qch.baseadmin.goods.vo.OrdersReportVo">
+        SELECT a.id,a.create_time, a.cost AS total_purchasing,
+        a.amount total_sale,(SELECT total_sale)-(SELECT total_purchasing) as profit,a.pay_type,a.user_name
+        FROM orders a
+        LEFT JOIN order_details b ON a.id=b.order_id
+        LEFT JOIN goods c ON b.good_id=c.id
+        WHERE a.create_time&gt;=#{startTime} AND a.create_time &lt;= #{endTime}
+        GROUP BY a.id
+        order BY a.create_time desc
     </select>
     <select id="salesCount" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesCountVo">
-        SELECT  sum(b.purchasing_price*b.sale_num) AS total_purchasing,sum(b.sale_price*b.sale_num) AS total_sale
-        FROM goods a
-        LEFT JOIN goods_sales b ON a.id=b.goods_id
-        WHERE b.create_time&gt;=#{startTime} AND b.create_time &lt;= #{endTime}
-        <if test="name != null and name != ''" >
-            and a.name like concat('%',#{name},'%')
-        </if>
+        SELECT  SUM(a.cost) AS total_purchasing,SUM(a.amount) AS total_sale
+        FROM orders a
+        WHERE a.create_time&gt;=#{startTime} AND a.create_time &lt;= #{endTime}
+
     </select>
 
     <select id="salesGroupByDate" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesCountVo">
@@ -54,7 +50,7 @@
         SELECT  a.id as goods_id,a.name,a.purchasing_price,a.sale_price,a.img,a.stock FROM goods a ${sql}
     </select>
 
-    <select id="salesGroupByName" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesReportVo">
+    <select id="salesGroupByName" resultType="cn.huanzi.qch.baseadmin.goods.vo.SalesReportByNameVo">
         SELECT c.name, SUM(b.sale_num) AS saleNum
         FROM orders a
         LEFT JOIN order_details b ON a.id=b.order_id

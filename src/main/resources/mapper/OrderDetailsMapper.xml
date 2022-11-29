@@ -11,4 +11,9 @@
 
 
     </insert>
+    <select id="orderDetails" resultType="cn.huanzi.qch.baseadmin.goods.vo.OrderDetailsGoodVo">
+        SELECT a.sale_num,a.purchasing_price,a.sale_price,b.name,b.`type`,b.stock
+        FROM order_details a
+        LEFT JOIN goods b ON a.good_id=b.id WHERE a.order_id=#{orderId}
+    </select>
 </mapper>
