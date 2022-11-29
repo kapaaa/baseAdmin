@@ -78,8 +78,10 @@
             elem: '#endTime' //指定元素
         });
     });
-    initTable("", "", "");
-    getSalesCount("", "", "");
+    var date = new Date();
+    var nowDay = date.toLocaleDateString();
+    initTable(date, date, "");
+    getSalesCount(nowDay, nowDay, "");
 
     function search() {
         let name = layui.$('#goodName').val();

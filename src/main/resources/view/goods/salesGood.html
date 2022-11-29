@@ -92,10 +92,10 @@
     <h1 style="text-align:center">购物清单</h1>
     <div>
         <div class="layui-form-item">
-            <label class="layui-form-label">支付方式</label>
             <div class="layui-input-block">
+                <label class="layui-form-label">支付方式</label>
                 微信<input type="radio" name="payType" value="1" title="微信" checked>
-                支付宝<input type="radio" name="payType" value="2" title="支付宝" >
+                支付宝<input type="radio" name="payType" value="2" title="支付宝">
             </div>
         </div>
         <button type="button" class="layui-btn" onclick="saleSubmit()">确定</button>
@@ -183,13 +183,18 @@
         let list = [];
         let i = 0;
         map.forEach((key, val) => {
-            list[i] = {"goodId": val, "purchasingPrice": goodsMap.get(val).purchasingPrice,"salePrice":goodsMap.get(val).salePrice,"saleNum":map.get(val)}
+            list[i] = {
+                "goodId": val,
+                "purchasingPrice": goodsMap.get(val).purchasingPrice,
+                "salePrice": goodsMap.get(val).salePrice,
+                "saleNum": map.get(val)
+            }
             i++
         })
         let data = {
             "payType": layui.$('input:radio[name="payType"]:checked').val(), "orderDetails": list
         }
-        if (list.length===0){
+        if (list.length === 0) {
             return
         }
         layui.$.ajax({
@@ -200,6 +205,7 @@
             contentType: 'application/json; charset=UTF-8',
             success: function (data) {
                 if (data.flag) {
+                    search()
                     map.clear();
                     layui.$('ul#saleList').replaceWith('<ul id="saleList" style="text-align:center;"></ul>');
                 }
