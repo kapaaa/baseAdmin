@@ -37,11 +37,22 @@
 </div>
 <button type="button" class="layui-btn" onclick="search()">搜索</button>
 <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
-<div id="main" style="width: 1600px;height:500px;"></div>
+<!-- 为 ECharts 准备一个定义了宽高的 DOM -->
+<div>
+    <div id="main" style="width: 500px;height:400px;display: inline-block;"></div>
+    <div id="main2" style="width: 700px;height:400px;display: inline-block;"></div>
+    <div id="main3" style="width: 400px;height:400px;display: inline-block;"></div>
+</div>
+<div id="yearMain" style="width: 1600px;height:500px;"></div>
 <script type="text/javascript">
+    // 基于准备好的dom，初始化echarts实例
+    let myChart1 = echarts.init(document.getElementById('main'));
+    let myChart2 = echarts.init(document.getElementById('main2'));
+    let myChart3 = echarts.init(document.getElementById('main3'));
+
     let app = {};
 
-    let chartDom = document.getElementById('main');
+    let chartDom = document.getElementById('yearMain');
     let myChart = echarts.init(chartDom);
     let option;
 
@@ -67,6 +78,7 @@
         // let endTime = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
         let endTime = "";
         loadEcharts(startTime, endTime, 2)
+        initEcharts(startTime,endTime)
     });
 
     function search() {
@@ -81,6 +93,7 @@
         //     endTime = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
         // }
         loadEcharts(startTime, endTime, type)
+        initEcharts(startTime,endTime)
     }
 
     function loadEcharts(startTime, endTime, type) {
@@ -276,6 +289,168 @@
         });
     }
 
+    function initEcharts(startTime,endTime) {
+
+        echarts1(startTime, endTime)
+        echarts2(startTime, endTime)
+        echarts3(startTime, endTime)
+    }
+
+    function echarts1(startTime, endTime) {
+        layui.$.ajax({
+            url: "/report/salesGroupByName?startTime=" + startTime + "&endTime=" + endTime,
+            data: {},
+            type: "get",
+            dataType: "json",
+            success: function (data) {
+                let d = data.data
+                let nameList = new Array(d.length)
+                let saleList = new Array(d.length)
+                for (let i = 0; i < d.length; i++) {
+                    nameList[i] = d[i].name
+                    saleList[i] = d[i].saleNum
+                }
+
+                // 指定图表的配置项和数据
+                let option = {
+                    title: {
+                        text: '销量'
+                    },
+                    tooltip: {},
+                    legend: {
+                        data: ['销量']
+                    },
+                    xAxis: {
+                        data: nameList
+                    },
+                    yAxis: {},
+                    series: [
+                        {
+                            name: '销量',
+                            type: 'bar',
+                            data: saleList
+                        }
+                    ]
+                };
+                // 使用刚指定的配置项和数据显示图表。
+                myChart1.setOption(option);
+            },
+            error: function (data) {
+                layer.alert(JSON.stringify(data), {
+                    title: data
+                });
+            }
+        });
+
+
+    }
+
+    function echarts2(startTime, endTime) {
+        layui.$.ajax({
+            url: '/report/salesGroupByDate?startTime=' + startTime + '&endTime=' + endTime,
+            data: {},
+            type: "get",
+            // dataType: "json",
+            contentType: 'application/json; charset=UTF-8',
+            success: function (data) {
+                let d = data.data
+                let saleList = new Array(data.length)
+                let dateList = new Array(data.length)
+                let purchasingList = new Array(data.length)
+                let profitList = new Array(data.length)
+                for (let i = 0; i < d.length; i++) {
+                    // let strings = d[i].createTime.toString().split(" ")[0].split("-");
+                    dateList[i] = d[i].createTime.toString()
+                    saleList[i] = d[i].totalSale
+                    profitList[i] = d[i].totalProfit
+                    purchasingList[i] = d[i].totalPurchasing
+                }
+
+                let optionchartZhe = {
+                    title: {
+                        text: '商品订单'
+                    },
+                    tooltip: {},
+                    legend: { //顶部显示 与series中的数据类型的name一致
+                        data: ['总成本', '总售价', '总利润']
+                    },
+                    xAxis: {
+                        // type: 'category',
+                        // boundaryGap: false, //从起点开始
+                        data: dateList
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [{
+                        name: '总成本',
+                        type: 'line', //线性
+                        data: purchasingList,
+                    }, {
+                        name: '总售价',
+                        type: 'line', //线性
+                        data: saleList,
+                    }, {
+                        smooth: true, //曲线 默认折线
+                        name: '总利润',
+                        type: 'line', //线性
+                        data: profitList,
+                    }]
+                };
+                myChart2.setOption(optionchartZhe);
+            },
+            error: function (data) {
+                layer.alert(JSON.stringify(data), {
+                    title: data
+                });
+            }
+        });
+    }
+
+    function echarts3(startTime, endTime) {
+        layui.$.ajax({
+            url: '/report/salesGroupByType?startTime=' + startTime + '&endTime=' + endTime,
+            data: {},
+            type: "get",
+            // dataType: "json",
+            contentType: 'application/json; charset=UTF-8',
+            success: function (data) {
+                let nameList = new Array(data.data.length)
+                for (let i = 0; i < data.data.length; i++) {
+                    nameList[i] = data.data[i].name
+                }
+
+                let optionchartBing = {
+                    title: {
+                        text: '商品订单',
+                        subtext: '', //副标题
+                        x: 'center' //标题居中
+                    },
+                    tooltip: {
+                        // trigger: 'item' //悬浮显示对比
+                    },
+                    legend: {
+                        orient: 'vertical', //类型垂直,默认水平
+                        left: 'left', //类型区分在左 默认居中
+                        data: nameList
+                    },
+                    series: [{
+                        type: 'pie', //饼状
+                        radius: '60%', //圆的大小
+                        center: ['50%', '50%'], //居中
+                        data: data.data
+                    }]
+                };
+                myChart3.setOption(optionchartBing);
+            },
+            error: function (data) {
+                layer.alert(JSON.stringify(data), {
+                    title: data
+                });
+            }
+        });
+
+    }
 </script>
 </body>
 </html>
